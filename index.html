@@ -8,18 +8,102 @@
 </head>
 <body>
 
-  <!-- LOGIN -->
-  <div id="login-screen" style="position:fixed;inset:0;background:#0c0c0c;z-index:999;display:flex;align-items:center;justify-content:center;">
-    <div style="background:#141414;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:2rem;width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px;">
-      <div style="text-align:center;margin-bottom:8px;">
-        <div style="width:40px;height:40px;background:#6366f1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:white;margin:0 auto 10px;">PNG</div>
-        <div style="font-size:18px;font-weight:700;">PNG Tracker</div>
-        <div style="font-size:13px;color:#999;margin-top:4px;">Ingresá para continuar</div>
+  <!-- LANDING + LOGIN -->
+  <div id="login-screen" class="landing">
+    <div class="landing-inner">
+
+      <!-- BADGE -->
+      <div class="landing-badge">✦ Disponible para nuevos proyectos</div>
+
+<!-- AVATAR -->
+<img src="foto.jpg" alt="Pablo Granados" class="landing-avatar" />
+
+      <!-- NOMBRE -->
+      <h1 class="landing-name">Pablo Granados</h1>
+      <div class="landing-handle">@pablogranados.png</div>
+
+      <!-- TAGLINE PRINCIPAL -->
+      <p class="landing-tagline">
+        <strong>No hago contenido. Hago que te recuerden.</strong>
+      </p>
+
+      <!-- PROPUESTA DE VALOR -->
+      <p class="landing-sub">
+        Hay miles de marcas publicando todos los días.<br>
+        La mayoría se olvida en 3 segundos.<br>
+        <strong>Yo trabajo para que la tuya no sea una de esas.</strong>
+      </p>
+
+      <!-- SERVICIOS CARDS -->
+      <div class="landing-services">
+        <div class="landing-service-card">
+          <span class="landing-service-icon">🎬</span>
+          <div class="landing-service-name">Edición de video</div>
+          <div class="landing-service-desc">Reels, spots, contenido audiovisual que para el scroll y genera acción.</div>
+        </div>
+        <div class="landing-service-card">
+          <span class="landing-service-icon">📱</span>
+          <div class="landing-service-name">Contenido para redes</div>
+          <div class="landing-service-desc">Estrategia + producción para que tu Instagram trabaje por vos.</div>
+        </div>
+        <div class="landing-service-card">
+          <span class="landing-service-icon">🎯</span>
+          <div class="landing-service-name">Identidad audiovisual</div>
+          <div class="landing-service-desc">Construimos el estilo visual de tu marca para que te reconozcan sin leer tu nombre.</div>
+        </div>
       </div>
-      <input id="login-email" type="email" placeholder="Email" style="background:#1c1c1c;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;font-size:14px;color:#f0f0f0;outline:none;width:100%;" />
-      <input id="login-password" type="password" placeholder="Contraseña" style="background:#1c1c1c;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;font-size:14px;color:#f0f0f0;outline:none;width:100%;" onkeydown="if(event.key==='Enter') doLogin()" />
-      <button onclick="doLogin()" style="background:#6366f1;color:white;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:600;cursor:pointer;">Ingresar</button>
-      <div id="login-error" style="font-size:12px;color:#ef4444;text-align:center;display:none;"></div>
+
+      <!-- PRUEBA SOCIAL -->
+      <div class="landing-social-proof">
+        <div class="landing-proof-item">
+          <span class="landing-proof-icon">🏃</span>
+          <span>Deportistas y clubes</span>
+        </div>
+        <div class="landing-proof-divider"></div>
+        <div class="landing-proof-item">
+          <span class="landing-proof-icon">🍷</span>
+          <span>Gastronomía</span>
+        </div>
+        <div class="landing-proof-divider"></div>
+        <div class="landing-proof-item">
+          <span class="landing-proof-icon">🎯</span>
+          <span>Marcas personales</span>
+        </div>
+        <div class="landing-proof-divider"></div>
+        <div class="landing-proof-item">
+          <span class="landing-proof-icon">📍</span>
+          <span>Rosario · Remoto</span>
+        </div>
+      </div>
+
+      <!-- FRASE DE CIERRE -->
+      <p class="landing-close">
+        Si tu marca merece ser vista,<br>
+        <strong>es hora de que se vea bien.</strong>
+      </p>
+
+      <!-- CTAs -->
+      <div class="landing-ctas">
+        <a href="https://wa.me/543416287921?text=Hola%20Pablo!%20Vi%20tu%20web%20y%20me%20interesa%20saber%20más%20sobre%20tus%20servicios." target="_blank" class="btn-landing-primary">
+          💬 Hablemos por WhatsApp
+        </a>
+        <a href="https://instagram.com/pablogranados.png" target="_blank" class="btn-landing-secondary">
+          📸 Ver mi trabajo
+        </a>
+      </div>
+
+      <!-- DIVIDER LOGIN -->
+      <div class="landing-divider"></div>
+      <div class="landing-login-label">Acceso privado</div>
+
+      <div class="landing-login-box">
+        <input id="login-email" type="email" placeholder="Email" class="landing-input" />
+        <input id="login-password" type="password" placeholder="Contraseña" class="landing-input"
+          onkeydown="if(event.key==='Enter') doLogin()" />
+        <button onclick="doLogin()" class="btn-login">Ingresar</button>
+        <div id="login-error" class="login-error"></div>
+      </div>
+
     </div>
   </div>
 
@@ -54,7 +138,7 @@
           <span class="sync-dot" id="sync-dot"></span>
           <span id="sync-text">Listo</span>
         </div>
-        <button onclick="doLogout()" style="margin-top:8px;width:100%;background:none;border:1px solid rgba(255,255,255,0.07);border-radius:8px;color:#999;padding:7px;font-size:12px;cursor:pointer;">Cerrar sesión</button>
+        <button onclick="doLogout()" class="btn-logout">Cerrar sesión</button>
       </div>
     </aside>
 
@@ -336,21 +420,18 @@
   </div>
 
   <!-- MODAL PRESUPUESTO -->
-<div class="modal-overlay" id="modal-presupuesto" onclick="closeModalOutside(event,'modal-presupuesto')">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-header">
-      <span>Presupuesto · <span id="presup-service-name"></span></span>
-      <button onclick="closeModal('modal-presupuesto')">✕</button>
+  <div class="modal-overlay" id="modal-presupuesto" onclick="closeModalOutside(event,'modal-presupuesto')">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-header"><span>Presupuesto · <span id="presup-service-name"></span></span><button onclick="closeModal('modal-presupuesto')">✕</button></div>
+      <input type="hidden" id="presup-service-id" />
+      <div style="font-size:13px;color:var(--text2);margin-bottom:4px">Precio: <b id="presup-price"></b></div>
+      <label class="form-label">Cliente (opcional)</label>
+      <select class="modal-input" id="presup-client"></select>
+      <button class="btn-primary" style="width:100%" onclick="generarTextPresupuesto()">✦ Generar texto</button>
+      <div id="presup-output" style="font-size:13px;line-height:1.7;color:var(--text);background:var(--surface2);border-radius:8px;padding:1rem;min-height:80px;white-space:pre-wrap;margin-top:4px"></div>
+      <button id="btn-copiar-presup" class="btn-secondary" onclick="copiarPresupuesto()">Copiar</button>
     </div>
-    <input type="hidden" id="presup-service-id" />
-    <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Precio: <b id="presup-price"></b></div>
-    <label class="form-label">Cliente (opcional)</label>
-    <select class="modal-input" id="presup-client"></select>
-    <button class="btn-primary" style="width:100%;margin-top:8px" onclick="generarTextPresupuesto()">Generar texto</button>
-    <div id="presup-output" style="font-size:13px;line-height:1.7;color:var(--text);background:var(--surface2);border-radius:8px;padding:1rem;min-height:80px;white-space:pre-wrap;margin-top:10px"></div>
-    <button id="btn-copiar-presup" class="btn-secondary" style="width:100%;margin-top:8px" onclick="copiarPresupuesto()">Copiar</button>
   </div>
-</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="data.js"></script>
