@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PNG Tracker · @pablogranados.png</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="login-screen" style="position:fixed;inset:0;background:#0c0c0c;z-index:999;display:flex;align-items:center;justify-content:center;">
+    <div style="background:#141414;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:2rem;width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px;">
+      <div style="text-align:center;margin-bottom:8px;">
+        <div style="width:40px;height:40px;background:#6366f1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:white;margin:0 auto 10px;">PNG</div>
+        <div style="font-size:18px;font-weight:700;">PNG Tracker</div>
+        <div style="font-size:13px;color:#999;margin-top:4px;">Ingresá para continuar</div>
+      </div>
+      <input id="login-email" type="email" placeholder="Email" style="background:#1c1c1c;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;font-size:14px;color:#f0f0f0;outline:none;width:100%;" />
+      <input id="login-password" type="password" placeholder="Contraseña" style="background:#1c1c1c;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;font-size:14px;color:#f0f0f0;outline:none;width:100%;" onkeydown="if(event.key==='Enter') doLogin()" />
+      <button onclick="doLogin()" style="background:#6366f1;color:white;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:600;cursor:pointer;">Ingresar</button>
+      <div id="login-error" style="font-size:12px;color:#ef4444;text-align:center;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div class="app" id="app-root" style="display:none;">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">PNG</div>
+        <div class="logo-text">
+          <span class="logo-name">Pablo Granados</span>
+          <span class="logo-handle">@pablogranados.png</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Principal</div>
+        <a class="nav-item active" onclick="navigate('dashboard',this)"><span class="nav-icon">◈</span> Dashboard</a>
+        <a class="nav-item" onclick="navigate('plan',this)"><span class="nav-icon">📅</span> Plan 30 días</a>
+        <a class="nav-item" onclick="navigate('habitos',this)"><span class="nav-icon">✦</span> Hábitos</a>
+        <a class="nav-item" onclick="navigate('clientes',this)"><span class="nav-icon">◎</span> Clientes</a>
+        <a class="nav-item" onclick="navigate('finanzas',this)"><span class="nav-icon">◐</span> Finanzas</a>
+        <a class="nav-item" onclick="navigate('ideas',this)"><span class="nav-icon">✧</span> Ideas</a>
+        <a class="nav-item" onclick="navigate('servicios',this)"><span class="nav-icon">◉</span> Servicios</a>
+        <a class="nav-item" onclick="navigate('mensajes',this)"><span class="nav-icon">✉</span> Mensajes</a>
+        <div class="nav-section-label" style="margin-top:1.5rem">Métricas</div>
+        <a class="nav-item" onclick="navigate('metricas',this)"><span class="nav-icon">▦</span> Métricas IG</a>
+        <a class="nav-item" onclick="navigate('comparar',this)"><span class="nav-icon">↑↓</span> Comparar</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sync-status" id="sync-status">
+          <span class="sync-dot" id="sync-dot"></span>
+          <span id="sync-text">Listo</span>
+        </div>
+        <button onclick="doLogout()" style="margin-top:8px;width:100%;background:none;border:1px solid rgba(255,255,255,0.07);border-radius:8px;color:#999;padding:7px;font-size:12px;cursor:pointer;">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <!-- TOPBAR MOBILE -->
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <span class="topbar-title" id="topbar-title">Dashboard</span>
+    </div>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- DASHBOARD -->
+      <div id="section-dashboard" class="section active">
+        <div class="page-header">
+          <h1 class="page-title">Dashboard</h1>
+          <span class="page-date" id="today-date"></span>
+        </div>
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="dash-grid">
+          <div class="dash-card"><div class="dash-card-title">Progreso del plan</div><div id="dash-plan-progress"></div></div>
+          <div class="dash-card"><div class="dash-card-title">Hábitos de hoy</div><div id="dash-habitos"></div></div>
+          <div class="dash-card"><div class="dash-card-title">Pipeline de clientes</div><div id="dash-clientes"></div></div>
+          <div class="dash-card"><div class="dash-card-title">Ideas recientes</div><div id="dash-ideas"></div></div>
+        </div>
+      </div>
+
+      <!-- PLAN -->
+      <div id="section-plan" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Plan 30 días</h1>
+          <div class="global-pct-badge" id="plan-global-pct">0%</div>
+        </div>
+        <div class="progress-bar-wrap" style="margin-bottom:1.5rem">
+          <div class="progress-bar-fill" id="plan-global-bar" style="width:0%"></div>
+        </div>
+        <div class="week-tabs" id="week-tabs">
+          <button class="week-tab active" onclick="showWeek(1,this)">Semana 1</button>
+          <button class="week-tab" onclick="showWeek(2,this)">Semana 2</button>
+          <button class="week-tab" onclick="showWeek(3,this)">Semana 3</button>
+          <button class="week-tab" onclick="showWeek(4,this)">Semana 4</button>
+        </div>
+        <div id="week-container"></div>
+      </div>
+
+      <!-- HÁBITOS -->
+      <div id="section-habitos" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Hábitos diarios</h1>
+          <button class="btn-primary" onclick="openModal('modal-add-habit')">+ Nuevo hábito</button>
+        </div>
+        <div id="habitos-container"></div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div id="section-clientes" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Pipeline de clientes</h1>
+          <button class="btn-primary" onclick="openModal('modal-add-client')">+ Nuevo cliente</button>
+        </div>
+        <div class="pipeline-board" id="pipeline-board"></div>
+      </div>
+
+      <!-- FINANZAS -->
+      <div id="section-finanzas" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Finanzas</h1>
+          <button class="btn-primary" onclick="openModal('modal-add-finance')">+ Registrar</button>
+        </div>
+        <div class="kpi-grid" id="finance-kpis"></div>
+        <div id="finance-list"></div>
+      </div>
+
+      <!-- IDEAS -->
+      <div id="section-ideas" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Ideas de contenido</h1>
+          <button class="btn-primary" onclick="openModal('modal-add-idea')">+ Nueva idea</button>
+        </div>
+        <div id="ideas-container"></div>
+      </div>
+
+      <!-- SERVICIOS -->
+      <div id="section-servicios" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Servicios</h1>
+          <button class="btn-primary" onclick="openModal('modal-add-servicio')">+ Nuevo servicio</button>
+        </div>
+        <div id="servicios-container"></div>
+      </div>
+
+      <!-- MENSAJES -->
+      <div id="section-mensajes" class="section">
+        <div class="page-header"><h1 class="page-title">Generador de mensajes</h1></div>
+        <div class="dash-card" style="max-width:600px">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div>
+              <label class="form-label">Cliente (opcional)</label>
+              <select class="modal-input" id="msg-client"></select>
+            </div>
+            <div>
+              <label class="form-label">Tipo de mensaje</label>
+              <select class="modal-input" id="msg-tipo">
+                <option value="primer-contacto">Primer contacto en frío</option>
+                <option value="seguimiento">Seguimiento sin respuesta</option>
+                <option value="propuesta">Propuesta formal</option>
+                <option value="reactivar">Reactivar cliente</option>
+                <option value="cierre">Cerrar venta pendiente</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Canal</label>
+              <select class="modal-input" id="msg-canal">
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="email">Email</option>
+                <option value="Instagram DM">Instagram DM</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Contexto adicional (opcional)</label>
+              <textarea class="modal-input" id="msg-extra" rows="2" placeholder="Ej: vi que publicaron un evento este fin de semana..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="generarMensaje()">✦ Generar mensaje</button>
+            <div id="msg-output" style="font-size:13px;line-height:1.7;color:var(--text);background:var(--surface2);border-radius:8px;padding:1rem;min-height:80px;white-space:pre-wrap;display:none"></div>
+            <button id="btn-copiar-msg" class="btn-secondary" onclick="copiarMensaje()" style="display:none">Copiar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÉTRICAS -->
+      <div id="section-metricas" class="section">
+        <div class="page-header"><h1 class="page-title">Métricas Instagram</h1></div>
+        <div class="week-tabs" id="metric-week-tabs">
+          <button class="week-tab active" onclick="showMetricWeek(1,this)">Semana 1</button>
+          <button class="week-tab" onclick="showMetricWeek(2,this)">Semana 2</button>
+          <button class="week-tab" onclick="showMetricWeek(3,this)">Semana 3</button>
+          <button class="week-tab" onclick="showMetricWeek(4,this)">Semana 4</button>
+        </div>
+        <div id="metric-container"></div>
+      </div>
+
+      <!-- COMPARAR -->
+      <div id="section-comparar" class="section">
+        <div class="page-header"><h1 class="page-title">Comparar semanas</h1></div>
+        <div id="compare-container"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="modal-add-habit" onclick="closeModalOutside(event,'modal-add-habit')">
+    <div class="modal">
+      <div class="modal-header"><span>Nuevo hábito</span><button onclick="closeModal('modal-add-habit')">✕</button></div>
+      <input class="modal-input" id="habit-name" placeholder="Nombre del hábito" />
+      <select class="modal-input" id="habit-icon">
+        <option value="🎬">🎬 Video / Contenido</option>
+        <option value="📱">📱 Redes sociales</option>
+        <option value="💬">💬 Interacción IG</option>
+        <option value="📚">📚 Aprender / Leer</option>
+        <option value="🏃">🏃 Ejercicio</option>
+        <option value="💧">💧 Hidratación</option>
+        <option value="✍️">✍️ Escribir</option>
+      </select>
+      <button class="btn-primary" style="width:100%" onclick="addHabit()">Agregar</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-add-client" onclick="closeModalOutside(event,'modal-add-client')">
+    <div class="modal">
+      <div class="modal-header"><span>Nuevo cliente</span><button onclick="closeModal('modal-add-client')">✕</button></div>
+      <input class="modal-input" id="client-name" placeholder="Nombre / negocio" />
+      <input class="modal-input" id="client-type" placeholder="Tipo (restaurante, club, marca...)" />
+      <select class="modal-input" id="client-stage">
+        <option value="prospecto">Prospecto</option>
+        <option value="contactado">Contactado</option>
+        <option value="propuesta">Propuesta enviada</option>
+        <option value="negociando">Negociando</option>
+        <option value="cerrado">Cerrado ✓</option>
+      </select>
+      <input class="modal-input" id="client-value" placeholder="Valor estimado" type="number" />
+      <textarea class="modal-input" id="client-notes" placeholder="Notas..." rows="3"></textarea>
+      <button class="btn-primary" style="width:100%" onclick="addClient()">Agregar</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-edit-client" onclick="closeModalOutside(event,'modal-edit-client')">
+    <div class="modal">
+      <div class="modal-header"><span>Editar cliente</span><button onclick="closeModal('modal-edit-client')">✕</button></div>
+      <input class="modal-input" id="edit-client-name" placeholder="Nombre / negocio" />
+      <input class="modal-input" id="edit-client-type" placeholder="Tipo" />
+      <select class="modal-input" id="edit-client-stage">
+        <option value="prospecto">Prospecto</option>
+        <option value="contactado">Contactado</option>
+        <option value="propuesta">Propuesta enviada</option>
+        <option value="negociando">Negociando</option>
+        <option value="cerrado">Cerrado ✓</option>
+      </select>
+      <input class="modal-input" id="edit-client-value" placeholder="Valor estimado" type="number" />
+      <textarea class="modal-input" id="edit-client-notes" placeholder="Notas..." rows="3"></textarea>
+      <input type="hidden" id="edit-client-id" />
+      <button class="btn-primary" style="width:100%" onclick="saveEditClient()">Guardar cambios</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-add-finance" onclick="closeModalOutside(event,'modal-add-finance')">
+    <div class="modal">
+      <div class="modal-header"><span>Registrar movimiento</span><button onclick="closeModal('modal-add-finance')">✕</button></div>
+      <select class="modal-input" id="finance-type">
+        <option value="ingreso">Ingreso</option>
+        <option value="gasto">Gasto</option>
+      </select>
+      <input class="modal-input" id="finance-desc" placeholder="Descripción" />
+      <input class="modal-input" id="finance-amount" placeholder="Monto" type="number" />
+      <input class="modal-input" id="finance-date" type="date" />
+      <button class="btn-primary" style="width:100%" onclick="addFinance()">Registrar</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-add-idea" onclick="closeModalOutside(event,'modal-add-idea')">
+    <div class="modal">
+      <div class="modal-header"><span>Nueva idea</span><button onclick="closeModal('modal-add-idea')">✕</button></div>
+      <input class="modal-input" id="idea-title" placeholder="Título de la idea" />
+      <select class="modal-input" id="idea-format">
+        <option value="reel">Reel</option>
+        <option value="carrusel">Carrusel</option>
+        <option value="historia">Historia</option>
+        <option value="live">Live</option>
+      </select>
+      <select class="modal-input" id="idea-niche">
+        <option value="deportes">Deportes</option>
+        <option value="gastronomia">Gastronomía</option>
+        <option value="marcas">Marcas personales</option>
+        <option value="general">General / Educativo</option>
+      </select>
+      <textarea class="modal-input" id="idea-notes" placeholder="Descripción o gancho..." rows="3"></textarea>
+      <button class="btn-primary" style="width:100%" onclick="addIdea()">Guardar idea</button>
+    </div>
+  </div>
+
+  <!-- MODAL CRM -->
+  <div class="modal-overlay" id="modal-crm" onclick="closeModalOutside(event,'modal-crm')">
+    <div class="modal" style="max-width:500px">
+      <div class="modal-header"><span>CRM · <span id="crm-client-name"></span></span><button onclick="closeModal('modal-crm')">✕</button></div>
+      <input type="hidden" id="crm-client-id" />
+      <label class="form-label">Próximo paso</label>
+      <input class="modal-input" id="crm-next-step" placeholder="Ej: Enviar propuesta el lunes" />
+      <label class="form-label">Fecha de seguimiento</label>
+      <input class="modal-input" type="date" id="crm-follow-date" />
+      <button class="btn-primary" style="width:100%" onclick="saveCRMNextStep()">Guardar próximo paso</button>
+      <div style="border-top:1px solid var(--border);margin:8px 0;padding-top:8px">
+        <label class="form-label">Agregar nota al historial</label>
+        <div style="display:flex;gap:8px">
+          <input class="modal-input" id="crm-new-entry" placeholder="Ej: Llamé, quedó en responder..." style="flex:1" />
+          <button class="btn-primary" onclick="addCRMEntry()">+</button>
+        </div>
+      </div>
+      <label class="form-label">Historial de contacto</label>
+      <div id="crm-history" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- MODAL SERVICIO -->
+  <div class="modal-overlay" id="modal-add-servicio" onclick="closeModalOutside(event,'modal-add-servicio')">
+    <div class="modal">
+      <div class="modal-header"><span>Nuevo servicio</span><button onclick="closeModal('modal-add-servicio')">✕</button></div>
+      <input class="modal-input" id="serv-name" placeholder="Nombre del servicio" />
+      <textarea class="modal-input" id="serv-desc" placeholder="Descripción detallada..." rows="3"></textarea>
+      <input class="modal-input" id="serv-price" placeholder="Precio" type="number" />
+      <select class="modal-input" id="serv-unit">
+        <option value="por mes">por mes</option>
+        <option value="por sesión">por sesión</option>
+        <option value="por video">por video</option>
+        <option value="por pack">por pack</option>
+        <option value="precio único">precio único</option>
+      </select>
+      <button class="btn-primary" style="width:100%" onclick="addServicio()">Guardar servicio</button>
+    </div>
+  </div>
+
+  <!-- MODAL PRESUPUESTO -->
+  <div class="modal-overlay" id="modal-presupuesto" onclick="closeModalOutside(event,'modal-presupuesto')">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-header"><span>Presupuesto · <span id="presup-service-name"></span></span><button onclick="closeModal('modal-presupuesto')">✕</button></div>
+      <input type="hidden" id="presup-service-id" />
+      <div style="font-size:13px;color:var(--text2);margin-bottom:4px">Precio: <b id="presup-price"></b></div>
+      <label class="form-label">Cliente (opcional)</label>
+      <select class="modal-input" id="presup-client"></select>
+      <button class="btn-primary" style="width:100%" onclick="generarTextPresupuesto()">✦ Generar presupuesto con IA</button>
+      <div id="presup-output" style="font-size:13px;line-height:1.7;color:var(--text);background:var(--surface2);border-radius:8px;padding:1rem;min-height:80px;white-space:pre-wrap;margin-top:4px"></div>
+      <button id="btn-copiar-presup" class="btn-secondary" onclick="copiarPresupuesto()">Copiar</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
