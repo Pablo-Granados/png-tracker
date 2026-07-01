@@ -17,10 +17,10 @@ let syncTimeout = null;
 
 // ─── STORAGE ──────────────────────────────────────────────
 function loadFromStorage() {
-  try { const s = localStorage.getItem('png_tracker_v3'); if (s) state = { ...state, ...JSON.parse(s) }; } catch(e) {}
+  try { const s = localStorage.getItem('png_tracker_v3'); if (s) state = { ...state, ...JSON.parse(s) }; } catch (e) { }
 }
 function saveToStorage() {
-  try { localStorage.setItem('png_tracker_v3', JSON.stringify(state)); } catch(e) {}
+  try { localStorage.setItem('png_tracker_v3', JSON.stringify(state)); } catch (e) { }
 }
 
 // ─── SYNC STATUS ──────────────────────────────────────────
@@ -41,8 +41,10 @@ async function syncToSupabase() {
   if (!user) return;
   setSyncStatus('syncing');
   try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
     const { error } = await sb.from('tracker_state').upsert({
-      id: 'pablo',
+      id: user.id,
       tasks: state.tasks,
       metrics: state.metrics,
       habits: state.habits,
@@ -56,25 +58,27 @@ async function syncToSupabase() {
     });
     if (error) throw error;
     setSyncStatus('ok');
-  } catch(e) { setSyncStatus('error'); }
+  } catch (e) { setSyncStatus('error'); }
 }
 
 async function loadFromSupabase() {
   try {
-    const { data, error } = await sb.from('tracker_state').select('*').eq('id', 'pablo').single();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    const { data, error } = await sb.from('tracker_state').select('*').eq('id', user.id).single();
     if (error || !data) return;
-    state.tasks       = data.tasks        || {};
-    state.metrics     = data.metrics      || {};
-    state.habits      = data.habits       || [];
+    state.tasks = data.tasks || {};
+    state.metrics = data.metrics || {};
+    state.habits = data.habits || [];
     state.habitChecks = data.habit_checks || {};
-    state.clients     = data.clients      || [];
-    state.finances    = data.finances     || [];
-    state.ideas       = data.ideas        || [];
-    state.services    = data.services     || [];
-    state.snapshots   = data.snapshots    || [];
+    state.clients = data.clients || [];
+    state.finances = data.finances || [];
+    state.ideas = data.ideas || [];
+    state.services = data.services || [];
+    state.snapshots = data.snapshots || [];
     saveToStorage();
     refreshCurrentSection();
-  } catch(e) {}
+  } catch (e) { }
 }
 
 function scheduleSync() {
@@ -106,7 +110,7 @@ function navigate(section, el) {
   document.getElementById('section-' + section).classList.add('active');
   if (el) el.classList.add('active');
   currentSection = section;
-  const titles = { dashboard:'Dashboard', plan:'Plan 30 días', habitos:'Hábitos', clientes:'Clientes', finanzas:'Finanzas', ideas:'Ideas', metricas:'Métricas IG', comparar:'Comparar', servicios:'Servicios', mensajes:'Mensajes' };
+  const titles = { dashboard: 'Dashboard', plan: 'Plan 30 días', habitos: 'Hábitos', clientes: 'Clientes', finanzas: 'Finanzas', ideas: 'Ideas', metricas: 'Métricas IG', comparar: 'Comparar', servicios: 'Servicios', mensajes: 'Mensajes' };
   document.getElementById('topbar-title').textContent = titles[section] || section;
   closeSidebarMobile();
   refreshCurrentSection();
@@ -227,7 +231,7 @@ function getStreak(habitId) {
   const today = new Date();
   for (let i = 0; i < 30; i++) {
     const d = new Date(today); d.setDate(d.getDate() - i);
-    if (state.habitChecks[`${habitId}_${d.toISOString().slice(0,10)}`]) streak++;
+    if (state.habitChecks[`${habitId}_${d.toISOString().slice(0, 10)}`]) streak++;
     else if (i > 0) break;
   }
   return streak;
@@ -243,15 +247,15 @@ function renderHabitos() {
   const days = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
-    days.push({ key: d.toISOString().slice(0,10), label: ['D','L','M','X','J','V','S'][d.getDay()] });
+    days.push({ key: d.toISOString().slice(0, 10), label: ['D', 'L', 'M', 'X', 'J', 'V', 'S'][d.getDay()] });
   }
-  const todayKey = new Date().toISOString().slice(0,10);
+  const todayKey = new Date().toISOString().slice(0, 10);
   cont.innerHTML = state.habits.map(h => {
     const streak = getStreak(h.id);
     const daysHtml = days.map(d => {
       const checked = !!state.habitChecks[`${h.id}_${d.key}`];
       const isToday = d.key === todayKey;
-      return `<div class="habit-day ${checked?'done':''} ${isToday&&!checked?'today':''}" onclick="toggleHabitDay(${h.id},'${d.key}')">${d.label}</div>`;
+      return `<div class="habit-day ${checked ? 'done' : ''} ${isToday && !checked ? 'today' : ''}" onclick="toggleHabitDay(${h.id},'${d.key}')">${d.label}</div>`;
     }).join('');
     return `<div class="habit-row">
       <span class="habit-icon">${h.icon}</span>
@@ -265,22 +269,22 @@ function renderHabitos() {
 
 // ─── CLIENTES ─────────────────────────────────────────────
 const STAGES = [
-  { key: 'prospecto',  label: 'Prospecto',        color: '#6366f1' },
-  { key: 'contactado', label: 'Contactado',        color: '#f59e0b' },
-  { key: 'propuesta',  label: 'Propuesta enviada', color: '#a855f7' },
-  { key: 'negociando', label: 'Negociando',        color: '#14b8a6' },
-  { key: 'cerrado',    label: 'Cerrado ✓',         color: '#22c55e' }
+  { key: 'prospecto', label: 'Prospecto', color: '#6366f1' },
+  { key: 'contactado', label: 'Contactado', color: '#f59e0b' },
+  { key: 'propuesta', label: 'Propuesta enviada', color: '#a855f7' },
+  { key: 'negociando', label: 'Negociando', color: '#14b8a6' },
+  { key: 'cerrado', label: 'Cerrado ✓', color: '#22c55e' }
 ];
 
 function addClient() {
-  const name  = document.getElementById('client-name').value.trim();
-  const type  = document.getElementById('client-type').value.trim();
+  const name = document.getElementById('client-name').value.trim();
+  const type = document.getElementById('client-type').value.trim();
   const stage = document.getElementById('client-stage').value;
   const value = document.getElementById('client-value').value;
   const notes = document.getElementById('client-notes').value.trim();
   if (!name) return;
   state.clients.push({ id: Date.now(), name, type, stage, value, notes });
-  ['client-name','client-type','client-value','client-notes'].forEach(id => document.getElementById(id).value = '');
+  ['client-name', 'client-type', 'client-value', 'client-notes'].forEach(id => document.getElementById(id).value = '');
   scheduleSync();
   closeModal('modal-add-client');
   renderClientes();
@@ -304,8 +308,8 @@ function saveEditClient() {
   if (idx === -1) return;
   state.clients[idx] = {
     id,
-    name:  document.getElementById('edit-client-name').value.trim(),
-    type:  document.getElementById('edit-client-type').value.trim(),
+    name: document.getElementById('edit-client-name').value.trim(),
+    type: document.getElementById('edit-client-type').value.trim(),
     stage: document.getElementById('edit-client-stage').value,
     value: document.getElementById('edit-client-value').value,
     notes: document.getElementById('edit-client-notes').value.trim()
@@ -386,13 +390,13 @@ function dropClient(event, newStage) {
 
 // ─── FINANZAS ─────────────────────────────────────────────
 function addFinance() {
-  const type   = document.getElementById('finance-type').value;
-  const desc   = document.getElementById('finance-desc').value.trim();
+  const type = document.getElementById('finance-type').value;
+  const desc = document.getElementById('finance-desc').value.trim();
   const amount = parseFloat(document.getElementById('finance-amount').value);
-  const date   = document.getElementById('finance-date').value || new Date().toISOString().slice(0,10);
+  const date = document.getElementById('finance-date').value || new Date().toISOString().slice(0, 10);
   if (!desc || !amount) return;
   state.finances.push({ id: Date.now(), type, desc, amount, date });
-  ['finance-desc','finance-amount'].forEach(id => document.getElementById(id).value = '');
+  ['finance-desc', 'finance-amount'].forEach(id => document.getElementById(id).value = '');
   scheduleSync();
   closeModal('modal-add-finance');
   renderFinanzas();
@@ -408,36 +412,36 @@ function renderFinanzas() {
   const kpis = document.getElementById('finance-kpis');
   const list = document.getElementById('finance-list');
   if (!kpis || !list) return;
-  const ingresos = state.finances.filter(f => f.type==='ingreso').reduce((s,f) => s+f.amount, 0);
-  const gastos   = state.finances.filter(f => f.type==='gasto').reduce((s,f) => s+f.amount, 0);
-  const balance  = ingresos - gastos;
+  const ingresos = state.finances.filter(f => f.type === 'ingreso').reduce((s, f) => s + f.amount, 0);
+  const gastos = state.finances.filter(f => f.type === 'gasto').reduce((s, f) => s + f.amount, 0);
+  const balance = ingresos - gastos;
   kpis.innerHTML = `
     <div class="kpi-card"><div class="kpi-label">Ingresos</div><div class="kpi-value" style="color:var(--success)">$${ingresos.toLocaleString('es-AR')}</div></div>
     <div class="kpi-card"><div class="kpi-label">Gastos</div><div class="kpi-value" style="color:var(--danger)">$${gastos.toLocaleString('es-AR')}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Balance</div><div class="kpi-value" style="color:${balance>=0?'var(--success)':'var(--danger)'}">$${balance.toLocaleString('es-AR')}</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">Balance</div><div class="kpi-value" style="color:${balance >= 0 ? 'var(--success)' : 'var(--danger)'}">$${balance.toLocaleString('es-AR')}</div></div>`;
   if (!state.finances.length) {
     list.innerHTML = `<div class="empty-state"><div class="empty-icon">◐</div>Sin movimientos registrados.</div>`;
     return;
   }
-  list.innerHTML = [...state.finances].sort((a,b) => b.date.localeCompare(a.date)).map(f => `
+  list.innerHTML = [...state.finances].sort((a, b) => b.date.localeCompare(a.date)).map(f => `
     <div class="finance-item">
       <span class="finance-type-badge badge-${f.type}">${f.type}</span>
       <span class="finance-desc">${f.desc}</span>
       <span class="finance-date">${f.date}</span>
-      <span class="finance-amount ${f.type}">${f.type==='ingreso'?'+':'-'}$${Number(f.amount).toLocaleString('es-AR')}</span>
+      <span class="finance-amount ${f.type}">${f.type === 'ingreso' ? '+' : '-'}$${Number(f.amount).toLocaleString('es-AR')}</span>
       <button class="finance-delete" onclick="deleteFinance(${f.id})">✕</button>
     </div>`).join('');
 }
 
 // ─── IDEAS ────────────────────────────────────────────────
 function addIdea() {
-  const title  = document.getElementById('idea-title').value.trim();
+  const title = document.getElementById('idea-title').value.trim();
   const format = document.getElementById('idea-format').value;
-  const niche  = document.getElementById('idea-niche').value;
-  const notes  = document.getElementById('idea-notes').value.trim();
+  const niche = document.getElementById('idea-niche').value;
+  const notes = document.getElementById('idea-notes').value.trim();
   if (!title) return;
   state.ideas.push({ id: Date.now(), title, format, niche, notes });
-  ['idea-title','idea-notes'].forEach(id => document.getElementById(id).value = '');
+  ['idea-title', 'idea-notes'].forEach(id => document.getElementById(id).value = '');
   scheduleSync();
   closeModal('modal-add-idea');
   renderIdeas();
@@ -479,7 +483,7 @@ function renderMetrics(weekNum) {
     const suffix = f.key === 'engagement' ? '%' : '';
     return `<div class="metric-card">
       <div class="metric-label">${f.label}</div>
-      <div class="metric-value" id="mv_${weekNum}_${f.key}">${val ? val+suffix : '–'}</div>
+      <div class="metric-value" id="mv_${weekNum}_${f.key}">${val ? val + suffix : '–'}</div>
       <input class="metric-input" type="number" step="0.1" placeholder="${f.placeholder}" value="${val}"
         oninput="updateMetric(${weekNum},'${f.key}',this.value)" />
       <div class="metric-target">Meta: ${targets[f.key]}${suffix}</div>
@@ -494,7 +498,7 @@ function updateMetric(weekNum, key, value) {
   state.metrics[`${weekNum}_${key}`] = value;
   const suffix = key === 'engagement' ? '%' : '';
   const el = document.getElementById(`mv_${weekNum}_${key}`);
-  if (el) el.textContent = value ? value+suffix : '–';
+  if (el) el.textContent = value ? value + suffix : '–';
   scheduleSync();
 }
 
@@ -552,12 +556,12 @@ function renderCompare() {
     WEEKS.forEach((w, wi) => {
       const val = parseFloat(state.metrics[`${w.num}_${f.key}`]) || 0;
       const target = TARGETS[wi][f.key];
-      const pct = target ? Math.min(100, Math.round(val/target*100)) : 0;
+      const pct = target ? Math.min(100, Math.round(val / target * 100)) : 0;
       if (val > 0) hasData = true;
       html += `<div class="comparison-row">
         <span class="comparison-label">Sem ${w.num} · meta ${target}${suffix}</span>
-        <div class="bar-wrap"><div class="bar-fill ${pct>=100?'over':''}" style="width:${pct}%"></div></div>
-        <span class="bar-value">${val||'–'}${val&&suffix?suffix:''}</span>
+        <div class="bar-wrap"><div class="bar-fill ${pct >= 100 ? 'over' : ''}" style="width:${pct}%"></div></div>
+        <span class="bar-value">${val || '–'}${val && suffix ? suffix : ''}</span>
       </div>`;
     });
     html += `</div>`;
@@ -569,26 +573,26 @@ function renderCompare() {
 // ─── DASHBOARD ────────────────────────────────────────────
 function renderDashboard() {
   const todayEl = document.getElementById('today-date');
-  if (todayEl) todayEl.textContent = new Date().toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
+  if (todayEl) todayEl.textContent = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
 
   let totalTasks = 0, doneTasks = 0;
   WEEKS.forEach(w => { const p = getWeekProgress(w.num); totalTasks += p.total; doneTasks += p.done; });
-  const ingresos = state.finances.filter(f=>f.type==='ingreso').reduce((s,f)=>s+f.amount,0);
-  const cerrados = state.clients.filter(c=>c.stage==='cerrado').length;
-  const todayKey = new Date().toISOString().slice(0,10);
+  const ingresos = state.finances.filter(f => f.type === 'ingreso').reduce((s, f) => s + f.amount, 0);
+  const cerrados = state.clients.filter(c => c.stage === 'cerrado').length;
+  const todayKey = new Date().toISOString().slice(0, 10);
   const habitsDone = state.habits.filter(h => state.habitChecks[`${h.id}_${todayKey}`]).length;
 
   const kpiGrid = document.getElementById('kpi-grid');
   if (kpiGrid) kpiGrid.innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Plan completado</div><div class="kpi-value">${totalTasks?Math.round(doneTasks/totalTasks*100):0}%</div><div class="kpi-sub">${doneTasks} de ${totalTasks} tareas</div></div>
+    <div class="kpi-card"><div class="kpi-label">Plan completado</div><div class="kpi-value">${totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0}%</div><div class="kpi-sub">${doneTasks} de ${totalTasks} tareas</div></div>
     <div class="kpi-card"><div class="kpi-label">Ingresos</div><div class="kpi-value" style="color:var(--success)">$${ingresos.toLocaleString('es-AR')}</div></div>
     <div class="kpi-card"><div class="kpi-label">Clientes cerrados</div><div class="kpi-value">${cerrados}</div><div class="kpi-sub">de ${state.clients.length} en pipeline</div></div>
-    <div class="kpi-card"><div class="kpi-label">Hábitos hoy</div><div class="kpi-value">${habitsDone}/${state.habits.length||0}</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">Hábitos hoy</div><div class="kpi-value">${habitsDone}/${state.habits.length || 0}</div></div>`;
 
   const planProg = document.getElementById('dash-plan-progress');
   if (planProg) planProg.innerHTML = WEEKS.map(w => {
     const { total, done } = getWeekProgress(w.num);
-    const pct = total ? Math.round(done/total*100) : 0;
+    const pct = total ? Math.round(done / total * 100) : 0;
     return `<div style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
         <span style="color:var(--text2)">Semana ${w.num} · ${w.title}</span><span style="font-weight:600">${pct}%</span>
@@ -600,15 +604,15 @@ function renderDashboard() {
   const dashHab = document.getElementById('dash-habitos');
   if (dashHab) dashHab.innerHTML = state.habits.length
     ? state.habits.map(h => {
-        const done = !!state.habitChecks[`${h.id}_${todayKey}`];
-        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
-          <span>${h.icon}</span><span style="flex:1;font-size:13px">${h.name}</span><span>${done?'✅':'⬜'}</span></div>`;
-      }).join('')
+      const done = !!state.habitChecks[`${h.id}_${todayKey}`];
+      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+          <span>${h.icon}</span><span style="flex:1;font-size:13px">${h.name}</span><span>${done ? '✅' : '⬜'}</span></div>`;
+    }).join('')
     : `<div style="font-size:13px;color:var(--text3)">Agregá hábitos desde la sección Hábitos.</div>`;
 
   const dashCli = document.getElementById('dash-clientes');
   if (dashCli) dashCli.innerHTML = STAGES.map(s => {
-    const count = state.clients.filter(c=>c.stage===s.key).length;
+    const count = state.clients.filter(c => c.stage === s.key).length;
     return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
       <span style="color:${s.color};font-size:11px;font-weight:700;min-width:130px">${s.label}</span>
       <span style="font-weight:600">${count}</span></div>`;
@@ -628,7 +632,7 @@ function renderDashboard() {
 
 // ─── INIT ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('finance-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('finance-date').value = new Date().toISOString().slice(0, 10);
 
   sb.auth.onAuthStateChange((event, session) => {
     const loginScreen = document.getElementById('login-screen');
@@ -670,7 +674,7 @@ function saveCRMNextStep() {
   const id = Number(document.getElementById('crm-client-id').value);
   const idx = state.clients.findIndex(c => c.id === id);
   if (idx === -1) return;
-  state.clients[idx].nextStep  = document.getElementById('crm-next-step').value.trim();
+  state.clients[idx].nextStep = document.getElementById('crm-next-step').value.trim();
   state.clients[idx].followDate = document.getElementById('crm-follow-date').value;
   scheduleSync();
   renderClientes();
@@ -704,14 +708,14 @@ function deleteCRMEntry(clientId, entryId) {
 
 // ─── SERVICIOS ────────────────────────────────────────────
 function addServicio() {
-  const name  = document.getElementById('serv-name').value.trim();
-  const desc  = document.getElementById('serv-desc').value.trim();
+  const name = document.getElementById('serv-name').value.trim();
+  const desc = document.getElementById('serv-desc').value.trim();
   const price = document.getElementById('serv-price').value;
-  const unit  = document.getElementById('serv-unit').value;
+  const unit = document.getElementById('serv-unit').value;
   if (!name) return;
   if (!state.services) state.services = [];
   state.services.push({ id: Date.now(), name, desc, price, unit });
-  ['serv-name','serv-desc','serv-price'].forEach(id => document.getElementById(id).value = '');
+  ['serv-name', 'serv-desc', 'serv-price'].forEach(id => document.getElementById(id).value = '');
   scheduleSync();
   closeModal('modal-add-servicio');
   renderServicios();
@@ -756,7 +760,7 @@ function generarPresupuesto(serviceId) {
 
 function generarTextPresupuesto() {
   const serviceId = Number(document.getElementById('presup-service-id').value);
-  const clientId  = Number(document.getElementById('presup-client').value);
+  const clientId = Number(document.getElementById('presup-client').value);
   const s = (state.services || []).find(s => s.id === serviceId);
   const c = state.clients.find(c => c.id === clientId);
   if (!s) return;
@@ -790,9 +794,9 @@ function copiarPresupuesto() {
 // ─── MENSAJES CON IA ──────────────────────────────────────
 function generarMensaje() {
   const clientId = Number(document.getElementById('msg-client').value);
-  const tipo     = document.getElementById('msg-tipo').value;
-  const canal    = document.getElementById('msg-canal').value;
-  const extra    = document.getElementById('msg-extra').value.trim();
+  const tipo = document.getElementById('msg-tipo').value;
+  const canal = document.getElementById('msg-canal').value;
+  const extra = document.getElementById('msg-extra').value.trim();
   const outputEl = document.getElementById('msg-output');
 
   const c = state.clients.find(c => c.id === clientId);
