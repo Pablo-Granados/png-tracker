@@ -466,8 +466,19 @@
                     onclick="closeModal('modal-add-servicio')">✕</button></div>
             <input class="modal-input" id="serv-name" placeholder="Nombre del servicio" />
             <textarea class="modal-input" id="serv-desc" placeholder="Descripción detallada..." rows="3"></textarea>
-            <input class="modal-input" id="serv-price" placeholder="Precio" type="number" />
-            <select class="modal-input" id="serv-unit">
+            <div style="display:flex;gap:8px">
+                <select class="modal-input" id="serv-currency" style="width:80px;flex-shrink:0">
+                    <option value="ARS">$</option>
+                    <option value="USD">U$D</option>
+                </select>
+                <div style="display:flex;gap:8px">
+                    <select class="modal-input" id="edit-serv-currency" style="width:80px;flex-shrink:0">
+                        <option value="ARS">$</option>
+                        <option value="USD">U$D</option>
+                    </select>
+                    <input class="modal-input" id="edit-serv-price" placeholder="Precio" type="number" style="flex:1" />
+                </div>
+            </div> <select class="modal-input" id="serv-unit">
                 <option value="por mes">por mes</option>
                 <option value="por sesión">por sesión</option>
                 <option value="por video">por video</option>

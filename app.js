@@ -492,12 +492,11 @@ function renderIdeas() {
 function addServicio() {
   const name  = document.getElementById('serv-name').value.trim();
   const desc  = document.getElementById('serv-desc').value.trim();
-  const price = document.getElementById('serv-price').value;
-  const unit  = document.getElementById('serv-unit').value;
-  if (!name) return;
+const price    = document.getElementById('serv-price').value;
+const currency = document.getElementById('serv-currency').value;
+const unit     = document.getElementById('serv-unit').value;  if (!name) return;
   if (!state.services) state.services = [];
-  state.services.push({ id: Date.now(), name, desc, price, unit });
-  ['serv-name','serv-desc','serv-price'].forEach(id => document.getElementById(id).value = '');
+state.services.push({ id: Date.now(), name, desc, price, currency: currency || 'ARS', unit });  ['serv-name','serv-desc','serv-price'].forEach(id => document.getElementById(id).value = '');
   scheduleSync();
   closeModal('modal-add-servicio');
   renderServicios();
@@ -510,6 +509,7 @@ function openEditServicio(id) {
   document.getElementById('edit-serv-name').value = s.name;
   document.getElementById('edit-serv-desc').value = s.desc || '';
   document.getElementById('edit-serv-price').value = s.price || '';
+  document.getElementById('edit-serv-currency').value = s.currency || 'ARS';
   document.getElementById('edit-serv-unit').value = s.unit || 'por mes';
   openModal('modal-edit-servicio');
 }
@@ -522,9 +522,9 @@ function saveEditServicio() {
     id,
     name:  document.getElementById('edit-serv-name').value.trim(),
     desc:  document.getElementById('edit-serv-desc').value.trim(),
-    price: document.getElementById('edit-serv-price').value,
-    unit:  document.getElementById('edit-serv-unit').value
-  };
+price:    document.getElementById('edit-serv-price').value,
+currency: document.getElementById('edit-serv-currency').value || 'ARS',
+unit:     document.getElementById('edit-serv-unit').value  };
   scheduleSync();
   closeModal('modal-edit-servicio');
   renderServicios();
@@ -548,8 +548,7 @@ function renderServicios() {
     <div class="service-card">
       <button class="idea-delete" onclick="deleteServicio(${s.id})">✕</button>
       <div class="service-name">${s.name}</div>
-      <div class="service-price">$${Number(s.price).toLocaleString('es-AR')} <span class="service-unit">${s.unit}</span></div>
-      ${s.desc ? `<div class="service-desc">${s.desc}</div>` : ''}
+<div class="service-price">${s.currency === 'USD' ? 'U$D' : '$'}${Number(s.price).toLocaleString('es-AR')} <span class="service-unit">${s.unit}</span></div>      ${s.desc ? `<div class="service-desc">${s.desc}</div>` : ''}
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn-secondary" style="flex:1" onclick="openEditServicio(${s.id})">✏️ Editar</button>
         <button class="btn-primary" style="flex:1" onclick="generarPresupuesto(${s.id})">Presupuesto</button>
@@ -583,8 +582,7 @@ Te comparto el detalle de lo que podemos hacer juntos:
 
 📌 *${s.name}*
 ${s.desc ? s.desc + '\n' : ''}
-💰 Inversión: $${Number(s.price).toLocaleString('es-AR')} ${s.unit}
-
+💰 Inversión: ${s.currency === 'USD' ? 'U$D' : '$'}${Number(s.price).toLocaleString('es-AR')} ${s.unit}
 Si te interesa arrancamos cuando quieras. Cualquier duda estoy acá.
 
 — Pablo Granados
