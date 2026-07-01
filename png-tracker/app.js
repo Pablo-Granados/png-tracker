@@ -754,48 +754,28 @@ function generarPresupuesto(serviceId) {
   openModal('modal-presupuesto');
 }
 
-async function generarTextPresupuesto() {
+function generarTextPresupuesto() {
   const serviceId = Number(document.getElementById('presup-service-id').value);
   const clientId  = Number(document.getElementById('presup-client').value);
   const s = (state.services || []).find(s => s.id === serviceId);
   const c = state.clients.find(c => c.id === clientId);
+  if (!s) return;
+
+  const texto = `Hola${c ? ` ${c.name}` : ''}! 👋
+
+Te comparto el detalle de lo que podemos hacer juntos:
+
+📌 *${s.name}*
+${s.desc ? s.desc + '\n' : ''}
+💰 Inversión: $${Number(s.price).toLocaleString('es-AR')} ${s.unit}
+
+Si te interesa arrancamos cuando quieras. Cualquier duda estoy acá.
+
+— Pablo Granados
+@pablogranados.png`;
+
   const outputEl = document.getElementById('presup-output');
-  outputEl.textContent = 'Generando...';
-
-  const prompt = `Sos Pablo Granados, editor de video y creador de contenido para marcas en Rosario, Argentina.
-Tu marca personal es @pablogranados.png. Tu lema es "No hago contenido. Hago que te recuerden."
-Trabajás con deportistas, restaurantes, cafés, bodegas y marcas personales.
-
-Generá un presupuesto profesional y cálido (no formal en exceso) para enviar por WhatsApp o email.
-
-Servicio: ${s.name}
-Descripción: ${s.desc || 'sin descripción adicional'}
-Precio: $${Number(s.price).toLocaleString('es-AR')} ${s.unit}
-${c ? `Cliente: ${c.name} (${c.type || 'sin tipo'})` : 'Sin cliente específico'}
-
-El presupuesto debe:
-- Empezar con un saludo personalizado si hay cliente
-- Describir brevemente el servicio con lenguaje audiovisual
-- Detallar el precio claramente
-- Terminar con un CTA para avanzar juntos
-- Máximo 150 palabras
-- Tono: profesional pero cercano, como habla un creativo argentino`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    outputEl.textContent = data.content?.[0]?.text || 'Error al generar el presupuesto.';
-  } catch(e) {
-    outputEl.textContent = 'Error de conexión. Intentá de nuevo.';
-  }
+  outputEl.textContent = texto;
 }
 
 function copiarPresupuesto() {
@@ -808,65 +788,75 @@ function copiarPresupuesto() {
 }
 
 // ─── MENSAJES CON IA ──────────────────────────────────────
-async function generarMensaje() {
+function generarMensaje() {
   const clientId = Number(document.getElementById('msg-client').value);
   const tipo     = document.getElementById('msg-tipo').value;
   const canal    = document.getElementById('msg-canal').value;
   const extra    = document.getElementById('msg-extra').value.trim();
   const outputEl = document.getElementById('msg-output');
-  outputEl.textContent = 'Generando...';
 
   const c = state.clients.find(c => c.id === clientId);
-  const services = (state.services || []).map(s => s.name).join(', ') || 'edición de video, reels, contenido para redes';
+  const nombre = c ? c.name : '[nombre]';
+  const negocio = c?.type || '[tipo de negocio]';
 
-  const tipoTexts = {
-    'primer-contacto': 'primer contacto en frío para ofrecer servicios',
-    'seguimiento':     'seguimiento después de un primer contacto sin respuesta',
-    'propuesta':       'propuesta formal después de una conversación inicial',
-    'reactivar':       'reactivar un cliente que no contesta hace tiempo',
-    'cierre':          'cerrar una venta que quedó pendiente'
+  const plantillas = {
+    'primer-contacto': `Hola ${nombre}! 👋
+
+Vi lo que están haciendo con ${negocio} y me pareció muy interesante.
+
+Soy Pablo, me dedico a la edición de video y creación de contenido para marcas. Ayudo a negocios como el tuyo a destacar en redes con contenido profesional.
+
+¿Te interesaría que charlemos sobre cómo podríamos trabajar juntos?
+
+— Pablo | @pablogranados.png`,
+
+    'seguimiento': `Hola ${nombre}, ¿cómo estás?
+
+Te escribí hace unos días y quería saber si tuviste oportunidad de ver mi mensaje.
+
+Quedo disponible para cualquier consulta cuando quieras.
+
+— Pablo | @pablogranados.png`,
+
+    'propuesta': `Hola ${nombre}! 👋
+
+Como te comenté, acá te paso el detalle de lo que podemos hacer juntos para ${negocio}.
+
+[Pegá acá el presupuesto generado desde Servicios]
+
+Cualquier duda estoy disponible. ¿Arrancamos?
+
+— Pablo | @pablogranados.png`,
+
+    'reactivar': `Hola ${nombre}, ¿cómo va todo?
+
+Hace un tiempo habíamos hablado y quería retomar el contacto.
+
+Tengo algunas ideas nuevas que creo que le pueden venir muy bien a ${negocio}. ¿Tenés unos minutos para charlar?
+
+— Pablo | @pablogranados.png`,
+
+    'cierre': `Hola ${nombre}! 👋
+
+Quedamos en hablar sobre la propuesta y quería saber si pudiste revisarla.
+
+Estoy listo para arrancar cuando vos quieras. ¿Cerramos?
+
+— Pablo | @pablogranados.png`
   };
 
-  const prompt = `Sos Pablo Granados, editor de video y creador de contenido (@pablogranados.png) de Rosario, Argentina.
-Tu lema: "No hago contenido. Hago que te recuerden."
-Servicios: ${services}
+  let texto = plantillas[tipo] || plantillas['primer-contacto'];
+  if (extra) texto += `\n\nNota: ${extra}`;
+  if (canal === 'Instagram DM') texto = texto.replace('— Pablo | @pablogranados.png', '— Pablo');
 
-Generá un mensaje de ${tipoTexts[tipo] || tipo} para enviar por ${canal}.
-${c ? `Destinatario: ${c.name}${c.type ? ` (${c.type})` : ''}${c.notes ? `. Notas: ${c.notes}` : ''}` : 'Destinatario genérico del nicho audiovisual/gastronomía/deportes'}
-${extra ? `Contexto adicional: ${extra}` : ''}
-
-Requisitos:
-- Tono cercano, directo, argentino — nada de "estimado cliente"
-- Si es WhatsApp: corto, máximo 5 líneas, sin formato markdown
-- Si es email: asunto + cuerpo, máximo 120 palabras
-- Mostrá valor real, no genérico
-- CTA claro al final
-- No uses asteriscos ni formato raro`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    const text = data.content?.[0]?.text || 'Error al generar el mensaje.';
-    outputEl.textContent = text;
-    outputEl.style.display = 'block';
-    document.getElementById('btn-copiar-msg').style.display = 'block';
-  } catch(e) {
-    outputEl.textContent = 'Error de conexión. Intentá de nuevo.';
-    outputEl.style.display = 'block';
-  }
+  outputEl.textContent = texto;
+  outputEl.style.display = 'block';
+  document.getElementById('btn-copiar-msg').style.display = 'block';
 }
 
 function copiarMensaje() {
   const text = document.getElementById('msg-output').textContent;
-  if (!text || text === 'Generando...') return;
+  if (!text) return;
   navigator.clipboard.writeText(text);
   const btn = document.getElementById('btn-copiar-msg');
   btn.textContent = '✓ Copiado';

@@ -336,18 +336,21 @@
   </div>
 
   <!-- MODAL PRESUPUESTO -->
-  <div class="modal-overlay" id="modal-presupuesto" onclick="closeModalOutside(event,'modal-presupuesto')">
-    <div class="modal" style="max-width:520px">
-      <div class="modal-header"><span>Presupuesto · <span id="presup-service-name"></span></span><button onclick="closeModal('modal-presupuesto')">✕</button></div>
-      <input type="hidden" id="presup-service-id" />
-      <div style="font-size:13px;color:var(--text2);margin-bottom:4px">Precio: <b id="presup-price"></b></div>
-      <label class="form-label">Cliente (opcional)</label>
-      <select class="modal-input" id="presup-client"></select>
-      <button class="btn-primary" style="width:100%" onclick="generarTextPresupuesto()">✦ Generar presupuesto con IA</button>
-      <div id="presup-output" style="font-size:13px;line-height:1.7;color:var(--text);background:var(--surface2);border-radius:8px;padding:1rem;min-height:80px;white-space:pre-wrap;margin-top:4px"></div>
-      <button id="btn-copiar-presup" class="btn-secondary" onclick="copiarPresupuesto()">Copiar</button>
+<div class="modal-overlay" id="modal-presupuesto" onclick="closeModalOutside(event,'modal-presupuesto')">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <span>Presupuesto · <span id="presup-service-name"></span></span>
+      <button onclick="closeModal('modal-presupuesto')">✕</button>
     </div>
+    <input type="hidden" id="presup-service-id" />
+    <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Precio: <b id="presup-price"></b></div>
+    <label class="form-label">Cliente (opcional)</label>
+    <select class="modal-input" id="presup-client"></select>
+    <button class="btn-primary" style="width:100%;margin-top:8px" onclick="generarTextPresupuesto()">Generar texto</button>
+    <div id="presup-output" style="font-size:13px;line-height:1.7;color:var(--text);background:var(--surface2);border-radius:8px;padding:1rem;min-height:80px;white-space:pre-wrap;margin-top:10px"></div>
+    <button id="btn-copiar-presup" class="btn-secondary" style="width:100%;margin-top:8px" onclick="copiarPresupuesto()">Copiar</button>
   </div>
+</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="data.js"></script>
