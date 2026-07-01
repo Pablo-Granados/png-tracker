@@ -1189,3 +1189,79 @@ background: linear-gradient(135deg, #f2f2f2 0%, #2dd4bf 100%);  -webkit-backgrou
   .landing-sub { font-size: 15px; }
   .landing-close { font-size: 16px; }
 }
+
+/* ── STATS ── */
+.landing-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 2rem;
+}
+
+.landing-stat {
+  text-align: center;
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  background: linear-gradient(135deg, #f2f2f2 0%, #2dd4bf 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-plus {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--teal);
+  -webkit-text-fill-color: var(--teal);
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 6px;
+}
+
+.landing-stat-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--border2);
+  flex-shrink: 0;
+}
+
+/* ── ANIMACIONES DE ENTRADA ── */
+.fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.alert-item {
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: var(--text);
+}

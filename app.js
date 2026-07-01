@@ -61,7 +61,9 @@ async function syncToSupabase() {
 
 async function loadFromSupabase() {
   try {
-    const { data, error } = await sb.from('tracker_state').select('*').eq('id', 'pablo').single();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    const { data, error } = await sb.from('tracker_state').select('*').eq('id', user.id).single();
     if (error || !data) return;
     state.tasks       = data.tasks        || {};
     state.metrics     = data.metrics      || {};
@@ -97,8 +99,29 @@ async function doLogout() {
   await sb.auth.signOut();
   const ls = document.getElementById('login-screen');
   ls.style.display = '';
-  ls.classList.add('landing');
   document.getElementById('app-root').style.display = 'none';
+}
+
+// ─── ANIMACIONES LANDING ──────────────────────────────────
+function animateLanding() {
+  const els = document.querySelectorAll('.fade-up');
+  els.forEach((el, i) => {
+    setTimeout(() => el.classList.add('visible'), i * 100);
+  });
+}
+
+function animateCounters() {
+  document.querySelectorAll('.stat-number').forEach(el => {
+    const target = parseInt(el.dataset.target);
+    const duration = 1500;
+    const step = target / (duration / 16);
+    let current = 0;
+    const timer = setInterval(() => {
+      current += step;
+      if (current >= target) { current = target; clearInterval(timer); }
+      el.textContent = Math.floor(current);
+    }, 16);
+  });
 }
 
 // ─── NAVIGATION ───────────────────────────────────────────
@@ -267,10 +290,10 @@ function renderHabitos() {
 
 // ─── CLIENTES ─────────────────────────────────────────────
 const STAGES = [
-  { key: 'prospecto',  label: 'Prospecto',        color: '#6366f1' },
+  { key: 'prospecto',  label: 'Prospecto',        color: '#0f766e' },
   { key: 'contactado', label: 'Contactado',        color: '#f59e0b' },
-  { key: 'propuesta',  label: 'Propuesta enviada', color: '#a855f7' },
-  { key: 'negociando', label: 'Negociando',        color: '#14b8a6' },
+  { key: 'propuesta',  label: 'Propuesta enviada', color: '#2dd4bf' },
+  { key: 'negociando', label: 'Negociando',        color: '#a78bfa' },
   { key: 'cerrado',    label: 'Cerrado ✓',         color: '#22c55e' }
 ];
 
@@ -348,7 +371,6 @@ function renderClientes() {
           </div>
         </div>`).join('')
       : `<div class="pipeline-empty">Sin clientes</div>`;
-
     return `<div class="pipeline-col"
       ondragover="dragOver(event)"
       ondrop="dropClient(event,'${stage.key}')">
@@ -378,11 +400,7 @@ function dropClient(event, newStage) {
   event.preventDefault();
   if (!draggedClientId) return;
   const idx = state.clients.findIndex(c => c.id === draggedClientId);
-  if (idx !== -1) {
-    state.clients[idx].stage = newStage;
-    scheduleSync();
-    renderClientes();
-  }
+  if (idx !== -1) { state.clients[idx].stage = newStage; scheduleSync(); renderClientes(); }
   draggedClientId = null;
 }
 
@@ -470,6 +488,165 @@ function renderIdeas() {
     </div>`).join('')}</div>`;
 }
 
+// ─── SERVICIOS ────────────────────────────────────────────
+function addServicio() {
+  const name  = document.getElementById('serv-name').value.trim();
+  const desc  = document.getElementById('serv-desc').value.trim();
+  const price = document.getElementById('serv-price').value;
+  const unit  = document.getElementById('serv-unit').value;
+  if (!name) return;
+  if (!state.services) state.services = [];
+  state.services.push({ id: Date.now(), name, desc, price, unit });
+  ['serv-name','serv-desc','serv-price'].forEach(id => document.getElementById(id).value = '');
+  scheduleSync();
+  closeModal('modal-add-servicio');
+  renderServicios();
+}
+
+function openEditServicio(id) {
+  const s = (state.services || []).find(s => s.id === id);
+  if (!s) return;
+  document.getElementById('edit-serv-id').value = id;
+  document.getElementById('edit-serv-name').value = s.name;
+  document.getElementById('edit-serv-desc').value = s.desc || '';
+  document.getElementById('edit-serv-price').value = s.price || '';
+  document.getElementById('edit-serv-unit').value = s.unit || 'por mes';
+  openModal('modal-edit-servicio');
+}
+
+function saveEditServicio() {
+  const id = Number(document.getElementById('edit-serv-id').value);
+  const idx = (state.services || []).findIndex(s => s.id === id);
+  if (idx === -1) return;
+  state.services[idx] = {
+    id,
+    name:  document.getElementById('edit-serv-name').value.trim(),
+    desc:  document.getElementById('edit-serv-desc').value.trim(),
+    price: document.getElementById('edit-serv-price').value,
+    unit:  document.getElementById('edit-serv-unit').value
+  };
+  scheduleSync();
+  closeModal('modal-edit-servicio');
+  renderServicios();
+}
+
+function deleteServicio(id) {
+  state.services = (state.services || []).filter(s => s.id !== id);
+  scheduleSync();
+  renderServicios();
+}
+
+function renderServicios() {
+  const cont = document.getElementById('servicios-container');
+  if (!cont) return;
+  const services = state.services || [];
+  if (!services.length) {
+    cont.innerHTML = `<div class="empty-state"><div class="empty-icon">◈</div>No tenés servicios cargados todavía.</div>`;
+    return;
+  }
+  cont.innerHTML = `<div class="services-grid">${services.map(s => `
+    <div class="service-card">
+      <button class="idea-delete" onclick="deleteServicio(${s.id})">✕</button>
+      <div class="service-name">${s.name}</div>
+      <div class="service-price">$${Number(s.price).toLocaleString('es-AR')} <span class="service-unit">${s.unit}</span></div>
+      ${s.desc ? `<div class="service-desc">${s.desc}</div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn-secondary" style="flex:1" onclick="openEditServicio(${s.id})">✏️ Editar</button>
+        <button class="btn-primary" style="flex:1" onclick="generarPresupuesto(${s.id})">Presupuesto</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function generarPresupuesto(serviceId) {
+  const s = (state.services || []).find(s => s.id === serviceId);
+  if (!s) return;
+  document.getElementById('presup-service-id').value = serviceId;
+  document.getElementById('presup-service-name').textContent = s.name;
+  document.getElementById('presup-price').textContent = `$${Number(s.price).toLocaleString('es-AR')} ${s.unit}`;
+  const clientSelect = document.getElementById('presup-client');
+  clientSelect.innerHTML = `<option value="">Sin cliente específico</option>` +
+    state.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('presup-output').textContent = '';
+  openModal('modal-presupuesto');
+}
+
+function generarTextPresupuesto() {
+  const serviceId = Number(document.getElementById('presup-service-id').value);
+  const clientId  = Number(document.getElementById('presup-client').value);
+  const s = (state.services || []).find(s => s.id === serviceId);
+  const c = state.clients.find(c => c.id === clientId);
+  if (!s) return;
+
+  const texto = `Hola${c ? ` ${c.name}` : ''}! 👋
+
+Te comparto el detalle de lo que podemos hacer juntos:
+
+📌 *${s.name}*
+${s.desc ? s.desc + '\n' : ''}
+💰 Inversión: $${Number(s.price).toLocaleString('es-AR')} ${s.unit}
+
+Si te interesa arrancamos cuando quieras. Cualquier duda estoy acá.
+
+— Pablo Granados
+@pablogranados.png`;
+
+  document.getElementById('presup-output').textContent = texto;
+}
+
+function copiarPresupuesto() {
+  const text = document.getElementById('presup-output').textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('btn-copiar-presup');
+  btn.textContent = '✓ Copiado';
+  setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
+}
+
+// ─── MENSAJES ─────────────────────────────────────────────
+function generarMensaje() {
+  const clientId = Number(document.getElementById('msg-client').value);
+  const tipo     = document.getElementById('msg-tipo').value;
+  const canal    = document.getElementById('msg-canal').value;
+  const extra    = document.getElementById('msg-extra').value.trim();
+  const outputEl = document.getElementById('msg-output');
+
+  const c = state.clients.find(c => c.id === clientId);
+  const nombre  = c ? c.name : '[nombre]';
+  const negocio = c?.type || '[tipo de negocio]';
+
+  const plantillas = {
+    'primer-contacto': `Hola ${nombre}! 👋\n\nVi lo que están haciendo con ${negocio} y me pareció muy interesante.\n\nSoy Pablo, me dedico a la edición de video y creación de contenido para marcas. Ayudo a negocios como el tuyo a destacar en redes con contenido profesional.\n\n¿Te interesaría que charlemos sobre cómo podríamos trabajar juntos?\n\n— Pablo | @pablogranados.png`,
+    'seguimiento':     `Hola ${nombre}, ¿cómo estás?\n\nTe escribí hace unos días y quería saber si tuviste oportunidad de ver mi mensaje.\n\nQuedo disponible para cualquier consulta cuando quieras.\n\n— Pablo | @pablogranados.png`,
+    'propuesta':       `Hola ${nombre}! 👋\n\nComo te comenté, acá te paso el detalle de lo que podemos hacer juntos para ${negocio}.\n\n[Pegá acá el presupuesto generado desde Servicios]\n\nCualquier duda estoy disponible. ¿Arrancamos?\n\n— Pablo | @pablogranados.png`,
+    'reactivar':       `Hola ${nombre}, ¿cómo va todo?\n\nHace un tiempo habíamos hablado y quería retomar el contacto.\n\nTengo algunas ideas nuevas que creo que le pueden venir muy bien a ${negocio}. ¿Tenés unos minutos para charlar?\n\n— Pablo | @pablogranados.png`,
+    'cierre':          `Hola ${nombre}! 👋\n\nQuedamos en hablar sobre la propuesta y quería saber si pudiste revisarla.\n\nEstoy listo para arrancar cuando vos quieras. ¿Cerramos?\n\n— Pablo | @pablogranados.png`
+  };
+
+  let texto = plantillas[tipo] || plantillas['primer-contacto'];
+  if (extra) texto += `\n\nNota: ${extra}`;
+  if (canal === 'Instagram DM') texto = texto.replace('— Pablo | @pablogranados.png', '— Pablo');
+
+  outputEl.textContent = texto;
+  outputEl.style.display = 'block';
+  document.getElementById('btn-copiar-msg').style.display = 'block';
+}
+
+function copiarMensaje() {
+  const text = document.getElementById('msg-output').textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('btn-copiar-msg');
+  btn.textContent = '✓ Copiado';
+  setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
+}
+
+function renderMensajes() {
+  const clientSelect = document.getElementById('msg-client');
+  if (!clientSelect) return;
+  clientSelect.innerHTML = `<option value="">Sin cliente específico</option>` +
+    state.clients.map(c => `<option value="${c.id}">${c.name}${c.type ? ` · ${c.type}` : ''}</option>`).join('');
+}
+
 // ─── MÉTRICAS ─────────────────────────────────────────────
 function renderMetrics(weekNum) {
   currentMetricWeek = weekNum;
@@ -508,15 +685,8 @@ function showMetricWeek(n, btn) {
 
 function saveMetricSnapshot(weekNum) {
   if (!state.snapshots) state.snapshots = [];
-  const snap = {
-    id: Date.now(),
-    week: weekNum,
-    date: new Date().toLocaleDateString('es-AR'),
-    data: {}
-  };
-  METRIC_FIELDS.forEach(f => {
-    snap.data[f.key] = state.metrics[`${weekNum}_${f.key}`] || '–';
-  });
+  const snap = { id: Date.now(), week: weekNum, date: new Date().toLocaleDateString('es-AR'), data: {} };
+  METRIC_FIELDS.forEach(f => { snap.data[f.key] = state.metrics[`${weekNum}_${f.key}`] || '–'; });
   state.snapshots.push(snap);
   scheduleSync();
   renderSnapshots(weekNum);
@@ -626,28 +796,19 @@ function renderDashboard() {
         </div>`).join('')
       : `<div style="font-size:13px;color:var(--text3)">Sin ideas guardadas.</div>`;
   }
+
+  // Alertas de seguimiento
+  const hoy = new Date().toISOString().slice(0,10);
+  const vencidos = state.clients.filter(c => c.followDate && c.followDate <= hoy && c.stage !== 'cerrado');
+  if (vencidos.length) {
+    const alertEl = document.getElementById('dash-alerts');
+    if (alertEl) alertEl.innerHTML = vencidos.map(c => `
+      <div class="alert-item">
+        📅 <b>${c.name}</b> — seguimiento ${c.followDate === hoy ? 'hoy' : 'vencido el ' + c.followDate}
+        <span onclick="openCRM(${c.id})" style="color:var(--teal);cursor:pointer;margin-left:8px">Ver CRM →</span>
+      </div>`).join('');
+  }
 }
-
-// ─── INIT ─────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('finance-date').value = new Date().toISOString().slice(0,10);
-
-  sb.auth.onAuthStateChange((event, session) => {
-    const loginScreen = document.getElementById('login-screen');
-    const appRoot = document.getElementById('app-root');
-    if (session) {
-      loginScreen.style.display = 'none';
-      appRoot.style.display = 'flex';
-      loadFromStorage();
-      document.getElementById('finance-date').value = new Date().toISOString().slice(0,10);
-      renderDashboard();
-      loadFromSupabase();
-    } else {
-      loginScreen.style.display = '';
-      appRoot.style.display = 'none';
-    }
-  });
-});
 
 // ─── CRM ──────────────────────────────────────────────────
 function openCRM(clientId) {
@@ -673,11 +834,11 @@ function saveCRMNextStep() {
   const id = Number(document.getElementById('crm-client-id').value);
   const idx = state.clients.findIndex(c => c.id === id);
   if (idx === -1) return;
-  state.clients[idx].nextStep  = document.getElementById('crm-next-step').value.trim();
+  state.clients[idx].nextStep   = document.getElementById('crm-next-step').value.trim();
   state.clients[idx].followDate = document.getElementById('crm-follow-date').value;
   scheduleSync();
   renderClientes();
-  alert('✓ Guardado');
+  closeModal('modal-crm');
 }
 
 function addCRMEntry() {
@@ -687,11 +848,7 @@ function addCRMEntry() {
   const idx = state.clients.findIndex(c => c.id === id);
   if (idx === -1) return;
   if (!state.clients[idx].history) state.clients[idx].history = [];
-  state.clients[idx].history.push({
-    id: Date.now(),
-    date: new Date().toLocaleDateString('es-AR'),
-    text
-  });
+  state.clients[idx].history.push({ id: Date.now(), date: new Date().toLocaleDateString('es-AR'), text });
   document.getElementById('crm-new-entry').value = '';
   scheduleSync();
   openCRM(id);
@@ -705,180 +862,24 @@ function deleteCRMEntry(clientId, entryId) {
   openCRM(clientId);
 }
 
-// ─── SERVICIOS ────────────────────────────────────────────
-function addServicio() {
-  const name  = document.getElementById('serv-name').value.trim();
-  const desc  = document.getElementById('serv-desc').value.trim();
-  const price = document.getElementById('serv-price').value;
-  const unit  = document.getElementById('serv-unit').value;
-  if (!name) return;
-  if (!state.services) state.services = [];
-  state.services.push({ id: Date.now(), name, desc, price, unit });
-  ['serv-name','serv-desc','serv-price'].forEach(id => document.getElementById(id).value = '');
-  scheduleSync();
-  closeModal('modal-add-servicio');
-  renderServicios();
-}
+// ─── INIT ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('finance-date').value = new Date().toISOString().slice(0,10);
+  animateLanding();
+  setTimeout(animateCounters, 400);
 
-function deleteServicio(id) {
-  state.services = (state.services || []).filter(s => s.id !== id);
-  scheduleSync();
-  renderServicios();
-}
-
-function renderServicios() {
-  const cont = document.getElementById('servicios-container');
-  if (!cont) return;
-  const services = state.services || [];
-  if (!services.length) {
-    cont.innerHTML = `<div class="empty-state"><div class="empty-icon">◈</div>No tenés servicios cargados todavía.</div>`;
-    return;
-  }
-  cont.innerHTML = `<div class="services-grid">${services.map(s => `
-    <div class="service-card">
-      <button class="idea-delete" onclick="deleteServicio(${s.id})">✕</button>
-      <div class="service-name">${s.name}</div>
-      <div class="service-price">$${Number(s.price).toLocaleString('es-AR')} <span class="service-unit">${s.unit}</span></div>
-      ${s.desc ? `<div class="service-desc">${s.desc}</div>` : ''}
-      <button class="btn-secondary" style="margin-top:10px;width:100%" onclick="generarPresupuesto(${s.id})">Generar presupuesto</button>
-    </div>`).join('')}</div>`;
-}
-
-function generarPresupuesto(serviceId) {
-  const s = (state.services || []).find(s => s.id === serviceId);
-  if (!s) return;
-  document.getElementById('presup-service-id').value = serviceId;
-  document.getElementById('presup-service-name').textContent = s.name;
-  document.getElementById('presup-price').textContent = `$${Number(s.price).toLocaleString('es-AR')} ${s.unit}`;
-  const clientSelect = document.getElementById('presup-client');
-  clientSelect.innerHTML = `<option value="">Sin cliente específico</option>` +
-    state.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  document.getElementById('presup-output').textContent = '';
-  openModal('modal-presupuesto');
-}
-
-async function generarTextPresupuesto() {
-  const serviceId = Number(document.getElementById('presup-service-id').value);
-  const clientId  = Number(document.getElementById('presup-client').value);
-  const s = (state.services || []).find(s => s.id === serviceId);
-  const c = state.clients.find(c => c.id === clientId);
-  const outputEl = document.getElementById('presup-output');
-  outputEl.textContent = 'Generando...';
-
-  const prompt = `Sos Pablo Granados, editor de video y creador de contenido para marcas en Rosario, Argentina.
-Tu marca personal es @pablogranados.png. Tu lema es "No hago contenido. Hago que te recuerden."
-Trabajás con deportistas, restaurantes, cafés, bodegas y marcas personales.
-
-Generá un presupuesto profesional y cálido (no formal en exceso) para enviar por WhatsApp o email.
-
-Servicio: ${s.name}
-Descripción: ${s.desc || 'sin descripción adicional'}
-Precio: $${Number(s.price).toLocaleString('es-AR')} ${s.unit}
-${c ? `Cliente: ${c.name} (${c.type || 'sin tipo'})` : 'Sin cliente específico'}
-
-El presupuesto debe:
-- Empezar con un saludo personalizado si hay cliente
-- Describir brevemente el servicio con lenguaje audiovisual
-- Detallar el precio claramente
-- Terminar con un CTA para avanzar juntos
-- Máximo 150 palabras
-- Tono: profesional pero cercano, como habla un creativo argentino`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    outputEl.textContent = data.content?.[0]?.text || 'Error al generar el presupuesto.';
-  } catch(e) {
-    outputEl.textContent = 'Error de conexión. Intentá de nuevo.';
-  }
-}
-
-function copiarPresupuesto() {
-  const text = document.getElementById('presup-output').textContent;
-  if (!text || text === 'Generando...') return;
-  navigator.clipboard.writeText(text);
-  const btn = document.getElementById('btn-copiar-presup');
-  btn.textContent = '✓ Copiado';
-  setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
-}
-
-// ─── MENSAJES CON IA ──────────────────────────────────────
-async function generarMensaje() {
-  const clientId = Number(document.getElementById('msg-client').value);
-  const tipo     = document.getElementById('msg-tipo').value;
-  const canal    = document.getElementById('msg-canal').value;
-  const extra    = document.getElementById('msg-extra').value.trim();
-  const outputEl = document.getElementById('msg-output');
-  outputEl.textContent = 'Generando...';
-
-  const c = state.clients.find(c => c.id === clientId);
-  const services = (state.services || []).map(s => s.name).join(', ') || 'edición de video, reels, contenido para redes';
-
-  const tipoTexts = {
-    'primer-contacto': 'primer contacto en frío para ofrecer servicios',
-    'seguimiento':     'seguimiento después de un primer contacto sin respuesta',
-    'propuesta':       'propuesta formal después de una conversación inicial',
-    'reactivar':       'reactivar un cliente que no contesta hace tiempo',
-    'cierre':          'cerrar una venta que quedó pendiente'
-  };
-
-  const prompt = `Sos Pablo Granados, editor de video y creador de contenido (@pablogranados.png) de Rosario, Argentina.
-Tu lema: "No hago contenido. Hago que te recuerden."
-Servicios: ${services}
-
-Generá un mensaje de ${tipoTexts[tipo] || tipo} para enviar por ${canal}.
-${c ? `Destinatario: ${c.name}${c.type ? ` (${c.type})` : ''}${c.notes ? `. Notas: ${c.notes}` : ''}` : 'Destinatario genérico del nicho audiovisual/gastronomía/deportes'}
-${extra ? `Contexto adicional: ${extra}` : ''}
-
-Requisitos:
-- Tono cercano, directo, argentino — nada de "estimado cliente"
-- Si es WhatsApp: corto, máximo 5 líneas, sin formato markdown
-- Si es email: asunto + cuerpo, máximo 120 palabras
-- Mostrá valor real, no genérico
-- CTA claro al final
-- No uses asteriscos ni formato raro`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    const text = data.content?.[0]?.text || 'Error al generar el mensaje.';
-    outputEl.textContent = text;
-    outputEl.style.display = 'block';
-    document.getElementById('btn-copiar-msg').style.display = 'block';
-  } catch(e) {
-    outputEl.textContent = 'Error de conexión. Intentá de nuevo.';
-    outputEl.style.display = 'block';
-  }
-}
-
-function copiarMensaje() {
-  const text = document.getElementById('msg-output').textContent;
-  if (!text || text === 'Generando...') return;
-  navigator.clipboard.writeText(text);
-  const btn = document.getElementById('btn-copiar-msg');
-  btn.textContent = '✓ Copiado';
-  setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
-}
-
-function renderMensajes() {
-  const clientSelect = document.getElementById('msg-client');
-  if (!clientSelect) return;
-  clientSelect.innerHTML = `<option value="">Sin cliente específico</option>` +
-    state.clients.map(c => `<option value="${c.id}">${c.name}${c.type ? ` · ${c.type}` : ''}</option>`).join('');
-}
+  sb.auth.onAuthStateChange((event, session) => {
+    const loginScreen = document.getElementById('login-screen');
+    const appRoot = document.getElementById('app-root');
+    if (session) {
+      loginScreen.style.display = 'none';
+      appRoot.style.display = 'flex';
+      loadFromStorage();
+      renderDashboard();
+      loadFromSupabase();
+    } else {
+      loginScreen.style.display = '';
+      appRoot.style.display = 'none';
+    }
+  });
+});
