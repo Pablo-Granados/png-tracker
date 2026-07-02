@@ -28,9 +28,9 @@
             <div class="landing-handle fade-up">@pablogranados.png</div>
 
             <!-- TAGLINE PRINCIPAL -->
-            <p class="landing-tagline fade-up">
+            <!-- <p class="landing-tagline fade-up">
                 <strong>No hago contenido. Hago que te recuerden.</strong>
-            </p>
+            </p> -->
 
             <!-- PROPUESTA DE VALOR -->
             <p class="landing-sub fade-up">
@@ -38,6 +38,24 @@
                 La mayoría se olvida en 3 segundos.<br>
                 <strong>Yo trabajo para que la tuya no sea una de esas.</strong>
             </p>
+
+                        <!-- CONTADOR -->
+            <div class="landing-stats fade-up">
+                <div class="landing-stat">
+                    <span class="stat-number" data-target="30">0</span><span class="stat-plus">+</span>
+                    <span class="stat-label">Proyectos</span>
+                </div>
+                <div class="landing-stat-divider"></div>
+                <div class="landing-stat">
+                    <span class="stat-number" data-target="2">0</span><span class="stat-plus">+</span>
+                    <span class="stat-label">Años de experiencia</span>
+                </div>
+                <div class="landing-stat-divider"></div>
+                <div class="landing-stat">
+                    <span class="stat-number" data-target="100">0</span><span class="stat-plus">%</span>
+                    <span class="stat-label">Dedicación</span>
+                </div>
+            </div>
 
             <!-- SERVICIOS CARDS -->
             <div class="landing-services fade-up">
@@ -101,23 +119,7 @@
                 </a>
             </div>
 
-            <!-- CONTADOR -->
-            <div class="landing-stats fade-up">
-                <div class="landing-stat">
-                    <span class="stat-number" data-target="30">0</span><span class="stat-plus">+</span>
-                    <span class="stat-label">Proyectos</span>
-                </div>
-                <div class="landing-stat-divider"></div>
-                <div class="landing-stat">
-                    <span class="stat-number" data-target="2">0</span><span class="stat-plus">+</span>
-                    <span class="stat-label">Años de experiencia</span>
-                </div>
-                <div class="landing-stat-divider"></div>
-                <div class="landing-stat">
-                    <span class="stat-number" data-target="100">0</span><span class="stat-plus">%</span>
-                    <span class="stat-label">Dedicación</span>
-                </div>
-            </div>
+
 
             <!-- DIVIDER LOGIN -->
             <div class="landing-divider"></div>
@@ -471,6 +473,8 @@
                     <option value="ARS">$</option>
                     <option value="USD">U$D</option>
                 </select>
+                <input class="modal-input" id="serv-price" placeholder="Precio" type="number" style="flex:1" />
+
             </div> <select class="modal-input" id="serv-unit">
                 <option value="por mes">por mes</option>
                 <option value="por sesión">por sesión</option>
