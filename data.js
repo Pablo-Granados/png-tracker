@@ -163,3 +163,6 @@ const TARGETS = [
   { seguidores: 298, alcance: 2000, dms: 5, clientes: 1, engagement: 6 },
   { seguidores: 418, alcance: 3000, dms: 8, clientes: 2, engagement: 7 }
 ];
+
+// ─── PLAN MULTI-MES ───────────────────────────────────────
+const PLAN_START_DATE = '2026-07-01';

@@ -39,7 +39,7 @@
                 <strong>Yo trabajo para que la tuya no sea una de esas.</strong>
             </p>
 
-                        <!-- CONTADOR -->
+            <!-- CONTADOR -->
             <div class="landing-stats fade-up">
                 <div class="landing-stat">
                     <span class="stat-number" data-target="30">0</span><span class="stat-plus">+</span>
@@ -185,7 +185,11 @@
             <div id="section-dashboard" class="section active">
                 <div class="page-header">
                     <h1 class="page-title">Dashboard</h1>
-                    <span class="page-date" id="today-date"></span>
+                    <div style="text-align:right">
+                        <span class="page-date" id="today-date"></span>
+                        <div style="font-size:12px;color:var(--teal);font-weight:700;margin-top:2px"
+                            id="plan-day-counter"></div>
+                    </div>
                 </div>
                 <div class="kpi-grid" id="kpi-grid"></div>
                 <div class="dash-grid">
@@ -212,9 +216,13 @@
             <!-- PLAN -->
             <div id="section-plan" class="section">
                 <div class="page-header">
-                    <h1 class="page-title">Plan 30 días</h1>
-                    <div class="global-pct-badge" id="plan-global-pct">0%</div>
+                    <h1 class="page-title">Plan mensual</h1>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <div class="global-pct-badge" id="plan-global-pct">0%</div>
+                        <button class="btn-primary" onclick="openModal('modal-new-month')">+ Mes nuevo</button>
+                    </div>
                 </div>
+                <div class="month-tabs" id="month-tabs"></div>
                 <div class="progress-bar-wrap" style="margin-bottom:1.5rem">
                     <div class="progress-bar-fill" id="plan-global-bar" style="width:0%"></div>
                 </div>
@@ -315,6 +323,15 @@
                             style="display:none">Copiar</button>
                     </div>
                 </div>
+            </div>
+
+            <!-- TESTIMONIOS (oculto hasta tener contenido) -->
+            <div id="section-testimonios" class="section">
+                <div class="page-header">
+                    <h1 class="page-title">Testimonios</h1>
+                    <button class="btn-primary" onclick="openModal('modal-add-testimonio')">+ Agregar</button>
+                </div>
+                <div id="testimonios-container"></div>
             </div>
 
             <!-- MÉTRICAS -->
@@ -500,6 +517,33 @@
                 style="font-size:13px;line-height:1.7;color:var(--text);background:var(--surface2);border-radius:8px;padding:1rem;min-height:80px;white-space:pre-wrap;margin-top:4px">
             </div>
             <button id="btn-copiar-presup" class="btn-secondary" onclick="copiarPresupuesto()">Copiar</button>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO MES -->
+    <div class="modal-overlay" id="modal-new-month" onclick="closeModalOutside(event,'modal-new-month')">
+        <div class="modal">
+            <div class="modal-header"><span>Nuevo mes de plan</span><button
+                    onclick="closeModal('modal-new-month')">✕</button></div>
+            <input class="modal-input" id="new-month-name" placeholder="Nombre del mes (ej: Agosto 2026)" />
+            <select class="modal-input" id="new-month-type">
+                <option value="template">Usar estructura del Mes 1 (mismas semanas, tareas nuevas)</option>
+                <option value="custom">Crear tareas desde cero</option>
+            </select>
+            <div id="new-month-tasks-container"></div>
+            <button class="btn-primary" style="width:100%" onclick="createNewMonth()">Crear mes</button>
+        </div>
+    </div>
+
+    <!-- MODAL TESTIMONIO -->
+    <div class="modal-overlay" id="modal-add-testimonio" onclick="closeModalOutside(event,'modal-add-testimonio')">
+        <div class="modal">
+            <div class="modal-header"><span>Nuevo testimonio</span><button
+                    onclick="closeModal('modal-add-testimonio')">✕</button></div>
+            <input class="modal-input" id="test-name" placeholder="Nombre del cliente" />
+            <input class="modal-input" id="test-business" placeholder="Tipo de negocio (ej: Club Atlético)" />
+            <textarea class="modal-input" id="test-quote" placeholder="Frase del testimonio..." rows="3"></textarea>
+            <button class="btn-primary" style="width:100%" onclick="addTestimonio()">Guardar</button>
         </div>
     </div>
 
