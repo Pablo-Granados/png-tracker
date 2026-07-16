@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PNG Tracker · @pablogranados.png</title>
+    <title>CONTENT PNG · @pablogranados.png</title>
     <link rel="icon" href="/foto.jpg" sizes="any">
     <link rel="icon" href="/foto.jpg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/foto.jpg">
@@ -110,20 +110,18 @@
                             data-instgrm-permalink="https://www.instagram.com/reel/Dag8hNiCyP4/"
                             data-instgrm-version="14"></blockquote>
                     </div>
-                    <div class="portfolio-item">
-                        <blockquote class="instagram-media"
-                            data-instgrm-permalink="https://www.instagram.com/reel/DZGqMhkyLFF/"
-                            data-instgrm-version="14"></blockquote>
-                    </div>
                 </div>
             </div>
 
             <!-- PRUEBA SOCIAL -->
+            <div class="section-eyebrow fade-up">CON QUIÉN TRABAJO</div>
+
             <div class="landing-chips fade-up">
-                <span class="landing-chip">🏃 Deportistas y clubes</span>
-                <span class="landing-chip">🍷 Gastronomía</span>
-                <span class="landing-chip">🎯 Marcas personales</span>
-                <span class="landing-chip">📍 Rosario · Remoto</span>
+                <span class="landing-chip">Deportistas, clubes y gimnasios</span>
+                <span class="landing-chip">Restaurante</span>
+                <span class="landing-chip">Marcas personales</span>
+                <span class="landing-chip">Locales, negocios y emprendimientos</span>
+                <span class="landing-chip">Estudios y consultorios</span>
             </div>
 
             <!-- CÓMO TRABAJO -->
@@ -589,31 +587,32 @@
         </div>
     </div>
 
-            <!-- MODAL EDITAR SERVICIO -->
-        <div class="modal-overlay" id="modal-edit-servicio" onclick="closeModalOutside(event,'modal-edit-servicio')">
-            <div class="modal">
-                <div class="modal-header"><span>Editar servicio</span><button
-                        onclick="closeModal('modal-edit-servicio')">✕</button></div>
-                <input type="hidden" id="edit-serv-id" />
-                <input class="modal-input" id="edit-serv-name" placeholder="Nombre del servicio" />
-                <textarea class="modal-input" id="edit-serv-desc" placeholder="Descripción detallada..." rows="3"></textarea>
-                <div style="display:flex;gap:8px">
-                    <select class="modal-input" id="edit-serv-currency" style="width:80px;flex-shrink:0">
-                        <option value="ARS">$</option>
-                        <option value="USD">U$D</option>
-                    </select>
-                    <input class="modal-input" id="edit-serv-price" placeholder="Precio" type="number" style="flex:1" />
-                </div>
-                <select class="modal-input" id="edit-serv-unit">
-                    <option value="por mes">por mes</option>
-                    <option value="por sesión">por sesión</option>
-                    <option value="por video">por video</option>
-                    <option value="por pack">por pack</option>
-                    <option value="precio único">precio único</option>
+    <!-- MODAL EDITAR SERVICIO -->
+    <div class="modal-overlay" id="modal-edit-servicio" onclick="closeModalOutside(event,'modal-edit-servicio')">
+        <div class="modal">
+            <div class="modal-header"><span>Editar servicio</span><button
+                    onclick="closeModal('modal-edit-servicio')">✕</button></div>
+            <input type="hidden" id="edit-serv-id" />
+            <input class="modal-input" id="edit-serv-name" placeholder="Nombre del servicio" />
+            <textarea class="modal-input" id="edit-serv-desc" placeholder="Descripción detallada..."
+                rows="3"></textarea>
+            <div style="display:flex;gap:8px">
+                <select class="modal-input" id="edit-serv-currency" style="width:80px;flex-shrink:0">
+                    <option value="ARS">$</option>
+                    <option value="USD">U$D</option>
                 </select>
-                <button class="btn-primary" style="width:100%" onclick="saveEditServicio()">Guardar cambios</button>
+                <input class="modal-input" id="edit-serv-price" placeholder="Precio" type="number" style="flex:1" />
             </div>
+            <select class="modal-input" id="edit-serv-unit">
+                <option value="por mes">por mes</option>
+                <option value="por sesión">por sesión</option>
+                <option value="por video">por video</option>
+                <option value="por pack">por pack</option>
+                <option value="precio único">precio único</option>
+            </select>
+            <button class="btn-primary" style="width:100%" onclick="saveEditServicio()">Guardar cambios</button>
         </div>
+    </div>
 
 
     <!-- MODAL PRESUPUESTO -->
@@ -658,6 +657,17 @@
             <input class="modal-input" id="test-business" placeholder="Tipo de negocio (ej: Club Atlético)" />
             <textarea class="modal-input" id="test-quote" placeholder="Frase del testimonio..." rows="3"></textarea>
             <button class="btn-primary" style="width:100%" onclick="addTestimonio()">Guardar</button>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAR (reutilizable para todos los borrados) -->
+    <div class="modal-overlay" id="modal-confirm" onclick="closeModalOutside(event,'modal-confirm')">
+        <div class="modal" style="max-width:320px;text-align:center">
+            <div id="confirm-message" style="font-size:14px;font-weight:600;line-height:1.5">¿Estás seguro?</div>
+            <div style="display:flex;gap:8px;margin-top:6px">
+                <button class="btn-secondary" style="flex:1" onclick="closeModal('modal-confirm')">Cancelar</button>
+                <button class="btn-danger" style="flex:1" onclick="confirmYes()">Borrar</button>
+            </div>
         </div>
     </div>
 

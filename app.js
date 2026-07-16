@@ -224,6 +224,22 @@ function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function closeModalOutside(e, id) { if (e.target.id === id) closeModal(id); }
 
+// ─── CONFIRMACIÓN VISUAL (reemplaza a los confirm() nativos) ──
+
+let _confirmCallback = null;
+function showConfirm(message, callback) {
+  const msgEl = document.getElementById('confirm-message');
+  if (msgEl) msgEl.textContent = message;
+  _confirmCallback = callback;
+  openModal('modal-confirm');
+}
+function confirmYes() {
+  closeModal('modal-confirm');
+  const cb = _confirmCallback;
+  _confirmCallback = null;
+  if (typeof cb === 'function') cb();
+}
+
 // ─── PLAN ─────────────────────────────────────────────────
 function toggleTask(weekNum, dayIdx, taskIdx) {
     const key = `${weekNum}_${dayIdx}_${taskIdx}`;
@@ -301,9 +317,11 @@ function addHabit() {
 }
 
 function deleteHabit(id) {
+  showConfirm('¿Borrar este hábito?', () => {
     state.habits = state.habits.filter(h => h.id !== id);
     scheduleSync();
     renderHabitos();
+  });
 }
 
 function toggleHabitDay(habitId, dayKey) {
@@ -407,10 +425,11 @@ function saveEditClient() {
 }
 
 function deleteClient(id) {
-    if (!confirm('¿Eliminás este cliente?')) return;
+  showConfirm('¿Eliminás este cliente?', () => {
     state.clients = state.clients.filter(c => c.id !== id);
     scheduleSync();
     renderClientes();
+  });
 }
 
 function renderClientes() {
@@ -485,9 +504,11 @@ function addFinance() {
 }
 
 function deleteFinance(id) {
+  showConfirm('¿Borrar este movimiento?', () => {
     state.finances = state.finances.filter(f => f.id !== id);
     scheduleSync();
     renderFinanzas();
+  });
 }
 
 function renderFinanzas() {
@@ -530,9 +551,11 @@ function addIdea() {
 }
 
 function deleteIdea(id) {
+  showConfirm('¿Borrar esta idea?', () => {
     state.ideas = state.ideas.filter(i => i.id !== id);
     scheduleSync();
     renderIdeas();
+  });
 }
 
 function renderIdeas() {
@@ -598,9 +621,11 @@ function saveEditServicio() {
 }
 
 function deleteServicio(id) {
+  showConfirm('¿Borrar este servicio?', () => {
     state.services = (state.services || []).filter(s => s.id !== id);
     scheduleSync();
     renderServicios();
+  });
 }
 
 function renderServicios() {
@@ -758,9 +783,11 @@ function saveMetricSnapshot(weekNum) {
 }
 
 function deleteSnapshot(id) {
+  showConfirm('¿Borrar este registro de métricas?', () => {
     state.snapshots = (state.snapshots || []).filter(s => s.id !== id);
     scheduleSync();
     renderSnapshots(currentMetricWeek);
+  });
 }
 
 function renderSnapshots(weekNum) {
@@ -932,11 +959,13 @@ function addCRMEntry() {
 }
 
 function deleteCRMEntry(clientId, entryId) {
+  showConfirm('¿Borrar esta entrada del historial?', () => {
     const idx = state.clients.findIndex(c => c.id === clientId);
     if (idx === -1) return;
     state.clients[idx].history = (state.clients[idx].history || []).filter(h => h.id !== entryId);
     scheduleSync();
     openCRM(clientId);
+  });
 }
 
 // ─── MULTI-MES ────────────────────────────────────────────
@@ -1053,9 +1082,11 @@ function addTestimonio() {
 }
 
 function deleteTestimonio(id) {
+  showConfirm('¿Borrar este testimonio?', () => {
     state.testimonios = (state.testimonios || []).filter(t => t.id !== id);
     scheduleSync();
     renderTestimonios();
+  });
 }
 
 function renderTestimonios() {

@@ -1570,8 +1570,26 @@ body {
 }
 
 .btn-secondary:hover {
-    background: var(--surface3);
-    border-color: var(--border3);
+  background: var(--surface3);
+  border-color: var(--border3);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font);
+}
+
+.btn-danger:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
 }
 
 /* ── MODALS ── */
@@ -1759,10 +1777,10 @@ body {
 
 .section-eyebrow {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--text3);
+    color: var(--purple);
     margin-bottom: 0.6rem;
 }
 
