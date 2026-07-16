@@ -1872,9 +1872,121 @@ body {
 }
 
 .landing-close-cta:hover {
-    border-color: var(--teal);
-    transform: translateX(2px);
+  border-color: var(--teal);
+  transform: translateX(2px);
 }
+
+.landing-process {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 1.75rem;
+  text-align: left;
+}
+
+.process-step {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem;
+}
+
+.process-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--teal-bg);
+  color: var(--teal);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.process-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.process-desc {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+.landing-faq {
+  text-align: left;
+  margin-bottom: 1.75rem;
+}
+
+.faq-item {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 8px;
+}
+
+.faq-item summary {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.faq-item summary::-webkit-details-marker { display: none; }
+
+.faq-item summary::after {
+  content: '+';
+  float: right;
+  color: var(--teal);
+  font-family: var(--font-mono);
+}
+
+.faq-item[open] summary::after { content: '−'; }
+
+.faq-item p {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .landing-process { grid-template-columns: 1fr; }
+}
+
+.landing-portfolio { margin-bottom: 1.75rem; }
+
+.portfolio-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.portfolio-item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: min(320px, 82vw);
+}
+
+.portfolio-item .instagram-media {
+  margin: 0 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.portfolio-scroll::-webkit-scrollbar { height: 6px; }
+.portfolio-scroll::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 3px; }
 
 .landing-close {
     font-size: 18px;
