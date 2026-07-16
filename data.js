@@ -166,3 +166,9 @@ const TARGETS = [
 
 // ─── PLAN MULTI-MES ───────────────────────────────────────
 const PLAN_START_DATE = '2026-07-01';
+
+// ─── NICHOS ROTATIVOS (LANDING) ───────────────────────────
+const ROTATING_NICHES = [
+  'restaurante', 'club', 'gimnasio', 'local', 'marca personal',
+  'negocio', 'emprendimiento', 'estudio', 'comercio', 'consultorio'
+];

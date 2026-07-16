@@ -114,6 +114,67 @@ function animateLanding() {
     });
 }
 
+// ─── TEXTO ROTATIVO POR NICHO ──────────────────────────────
+function rotateNiches() {
+    const el = document.getElementById('rotating-niche');
+    if (!el || !window.ROTATING_NICHES) return;
+    let i = 0;
+    setInterval(() => {
+        i = (i + 1) % ROTATING_NICHES.length;
+        el.style.opacity = 0;
+        setTimeout(() => {
+            el.textContent = ROTATING_NICHES[i];
+            el.style.opacity = 1;
+        }, 250);
+    }, 2200);
+}
+
+// ─── RENDER BADGE (barra de export animada, signature de landing) ──
+function animateRenderBadge() {
+    const fill = document.getElementById('render-badge-fill');
+    const label = document.getElementById('render-badge-label');
+    if (!fill || !label) return;
+    requestAnimationFrame(() => { fill.style.width = '100%'; });
+    setTimeout(() => {
+        label.textContent = 'Disponible para nuevos proyectos';
+        label.classList.add('done');
+    }, 2500);
+}
+
+// ─── CTA FLOTANTE (aparece cuando el CTA principal sale de vista) ──
+function initFloatingCta() {
+    const cta = document.getElementById('floating-cta');
+    const ctas = document.querySelector('.landing-ctas');
+    if (!cta || !ctas || !window.IntersectionObserver) return;
+    const observer = new IntersectionObserver(([entry]) => {
+        cta.classList.toggle('visible', !entry.isIntersecting);
+    }, { threshold: 0 });
+    observer.observe(ctas);
+}
+
+// ─── ACCESO SECRETO (5 toques en el avatar, o #panel en la URL) ──
+function initSecretLogin() {
+    const box = document.getElementById('secret-login');
+    const avatar = document.querySelector('.landing-avatar');
+    if (!box) return;
+
+    if (location.hash === '#panel') box.style.display = '';
+
+    if (!avatar) return;
+    let taps = 0, tapTimer = null;
+    avatar.style.cursor = 'pointer';
+    avatar.addEventListener('click', () => {
+        taps++;
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => { taps = 0; }, 2500);
+        if (taps >= 5) {
+            taps = 0;
+            box.style.display = '';
+            box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+}
+
 function animateCounters() {
     document.querySelectorAll('.stat-number').forEach(el => {
         const target = parseInt(el.dataset.target);
@@ -1019,7 +1080,11 @@ function renderTestimonios() {
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('finance-date').value = new Date().toISOString().slice(0, 10);
     animateLanding();
-    setTimeout(animateCounters, 400);
+    setTimeout(animateCounters, 600);
+    animateRenderBadge();
+    initFloatingCta();
+    initSecretLogin();
+    rotateNiches();
 
     sb.auth.onAuthStateChange((event, session) => {
         const loginScreen = document.getElementById('login-screen');
