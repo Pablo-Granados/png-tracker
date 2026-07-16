@@ -117,7 +117,7 @@ function animateLanding() {
 // ─── TEXTO ROTATIVO POR NICHO ──────────────────────────────
 function rotateNiches() {
     const el = document.getElementById('rotating-niche');
-    if (!el || !window.ROTATING_NICHES) return;
+    if (!el || typeof ROTATING_NICHES === 'undefined' || !ROTATING_NICHES.length) return;
     let i = 0;
     setInterval(() => {
         i = (i + 1) % ROTATING_NICHES.length;
